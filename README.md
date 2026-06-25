@@ -1,2 +1,2 @@
-# Template
-Template for my projects written in C
+# PGEN
+Parser generator written in C++
