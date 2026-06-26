@@ -1,0 +1,51 @@
+
+/*
+    This is the grammar for the input to PGEN.
+*/
+
+grammar {
+    + ( rule )
+}
+
+rule {
+    non_terminal_symbol '{' expression '}'
+}
+
+/*
+    A non_terminal_symbol is all lower case.
+*/
+non_terminal_symbol {
+    NON_TERMAINL_NAME
+}
+
+/*
+    A terminal name is all upper case.
+*/
+terminal_symbol {
+    TERMINAL_NAME
+}
+
+expr_primary {
+    | ( QSTRG // creates a terminal symbol
+        non_terminal_symbol
+        terminal_symbol
+        select_expr
+        repetition_expr
+        '(' expression ')'
+    )
+}
+
+expression {
+    select_expr
+}
+
+select_expr {
+    | ( repetition_expr
+        '|' '(' + ( expr_primary ) ')'
+    )
+}
+
+repetition_expr {
+    | ( '?' '+' '*' ) '(' + ( expr_primary ) ')'
+}
+

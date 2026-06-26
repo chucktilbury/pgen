@@ -1,4 +1,4 @@
-project(main)
+project(pgen)
 
 include(${PROJECT_SOURCE_DIR}/../../CMakeBuildOpts.txt)
 
@@ -9,4 +9,5 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     #gc
     #cord
+    scanner
 )

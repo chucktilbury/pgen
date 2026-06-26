@@ -1,0 +1,375 @@
+
+/*
+    This is a grammar for the 'Simple' programming language. It does not try to
+    follow any of the BNF or PEG variants.
+
+    Regular expressions are formatted as "functions" to make them easier to scan
+    and parse. Spaces are completely ignored wherever possible.
+
+    C multi-line and single line comments are allowed anywhere in the text
+
+    Non-terminal rule definitions have the format of
+    name '{' exactly_one_regex '}'
+
+    Regex definitions. Note that the operator and the open paren are separate
+    tokens. For example, comments can go between them.
+        -- (a b c) = 'a' followed by 'b' followed by 'c'. Implied by {} as well.
+        -- |(a b c) = one of 'a' or 'b' or 'c'
+        -- ?(a) = one optional 'a'
+        -- *(a) = zero or more 'a'
+        -- +(a) = one or more 'a'
+        -- !(a) = but not 'a'
+
+    -- A quoted string such as 'string' or "string" references a terminal
+       symbol. These are case-sensitive.
+
+    -- An upper case string such as 'IDENT' references a terminal symbol that
+       requires a regular expression, which will be defined in the scanner.
+
+    -- A lower case string defines or references a non-terminal symbol,
+       depending on the context.
+*/
+
+module {
+    + ( module_item )
+}
+
+/*
+    'start'
+    Can have exactly one 'start' symbol globally, that must be defined outside
+    of any namespace. If a 'start' symbol is defined inside a class or a
+    namespace, then that is a different symbol than the global program entry
+    point.
+
+    'import'
+    Parse the file given by the literal string and import the symbols for
+    linking after compilation.
+
+    'include'
+    Include the whole file as if it was defined in the current one.
+*/
+module_item {
+    | ( ( 'import' literal_string ? ('as' IDENTIFIER) )
+        ( 'include' literal_string )
+        ( 'start' function_body )
+        namespace_definition
+    )
+}
+
+/*
+    Namespace name can be defined in multiple places. The contents are
+    simply appended as they are encountered.
+*/
+namespace_definition {
+    'namespace' IDENTIFIER '{' * (namespace_item) '}'
+}
+
+namespace_item {
+    | ( namespace_definition
+        function_definition
+        global_variable_definition
+        class_definition
+        class_member_definition
+        scope_operator
+    )
+}
+
+/*
+    'protected' does not apply outside of a class definition
+*/
+scope_operator {
+    | ( 'public' 'private' )
+}
+
+/*
+    Parser creates the syntax error upon misuse.
+*/
+class_scope_operator {
+    | ( scope_operator 'protected' )
+}
+
+/*
+    A single quoted string is taken as a true literal with no formatting or
+    interpretation of any kind. A formatted string is treated as a class
+    internally.
+*/
+literal_string {
+    | ( LITERAL_SSTR formatted_string )
+}
+
+/*
+    String formatting is done as {NAME} where the 'NAME' is a valid IDENTIFIER
+    and is local to the string definition. The type is determined automatically
+    and expanded to produce the least astonishment possible. If the name is not
+    provided then it is simply done as {} and in order. Missing formats in the
+    string create a syntax error. The literal curly braces have to be escaped
+    with a '\' or they are taken as formatting markers. Implemented in the
+    runtime code.
+*/
+formatted_string {
+    LITERAL_DSTR ?( '(' ? (string_format * ( ',' string_format ) ) ')' )
+}
+
+string_format {
+    ? (IDENTIFIER '=') expression
+}
+
+/*
+    Path to find a name that must be know at compile time. Different from a
+    compound reference. Note that forward declarations are not required but a
+    declaration must exist.
+*/
+compound_identifier {
+    IDENTIFIER * ( '.' IDENTIFIER )
+}
+
+/*
+    Path to find a name that can only be determined at run time.
+*/
+compound_reference {
+    compound_reference_item * ( '.' compound_reference_item )
+}
+
+compound_reference_item {
+    | ( IDENTIFIER
+        function_reference
+        dict_reference
+        array_reference
+    )
+}
+
+native_type_name {
+    | ( | ( 'int' 'integer' )
+        | ( 'uint' 'unsigned' )
+        | ( 'str' 'string' )
+        | ( 'nothing' 'none' 'null' )
+        | ( 'bool' 'boolean' )
+        | ( 'dict' 'dictionary' )
+        | ( 'list' 'array' )
+        'float'
+    )
+}
+
+type_name {
+    | ( native_type_name
+        compound_identifier
+    )
+}
+
+/*
+    Note that variables cannot have type 'nothing'. All variable definition
+    assignment must determine a value at compile time. Some situations allow an
+    implicit value such as assigning a the value of a function parameter to a
+    local variable. Global assignments are only allowed with literal values.
+
+    User must typecheck. Lists and dicts can have any type but the type of
+    variable must match the definition. (such as dict name = {'value'=123})
+*/
+global_variable_definition {
+    ? ( 'const' ) type_name IDENTIFIER ? ( '=' literal_value )
+}
+
+literal_value {
+    | ( LITERAL_INTEGER
+        LITERAL_UNSIGNED
+        LITERAL_SSTR
+        LITERAL_FLOAT
+        'true' 'false'
+        literal_array
+        literal_dict
+        formatted_string
+    )
+}
+
+literal_array {
+    '[' ? ( literal_value * ( ',' literal_value ) ) ']'
+}
+
+literal_dict {
+    '{' ? ( IDENTIFIER '=' literal_value
+            * ( ',' IDENTIFIER '=' literal_value ) ) '}'
+}
+
+function_body {
+    '{' + ( | ( function_body_item function_body ) ) '}'
+}
+
+function_body_item {
+    | ( compound_reference
+        ( ? ( type_name) IDENTIFIER ? ( '=' expression ) )
+        ( 'while' ? ( '(' ? ( expression ) ')' ) loop_body )
+        ( 'do' loop_body 'while' ? ( '(' ? ( expression ) ')' ) )
+        ( 'for' ? ( '(' ? ( expression 'as' IDENTIFIER ) ')' ) loop_body )
+        ( 'if' '(' expression ')' function_body
+            * ( 'else' '(' expression ')' function_body)
+            ? ( 'else' ? ( '(' ')' ) function_body ) )
+        ( 'try' function_body
+            + ( 'except' '(' IDENTIFIER ',' compound_reference ')' ) )
+        ( 'raise' '(' IDENTIFIER ',' compound_reference ')' )
+        ( 'return' ? ( '(' ? ( expression ) ')' ) )
+        ( 'exit' '(' expression ')' )
+    )
+}
+
+loop_body {
+    '{' * ( | ( loop_body_item loop_body ) ) '}'
+}
+
+loop_body_item {
+    | ( function_body_item
+        'break' 'continue'
+        ( 'yield' '(' expression ')' )
+    )
+}
+
+function_definition {
+    type_name IDENTIFIER function_def_arg_list function_body
+}
+
+function_def_arg {
+    type_name IDENTIFIER ? ( '=' literal_value )
+}
+
+func_def_type_list {
+    '(' ? ( type_name * ( ',' type_name ) ) ')'
+}
+
+function_def_arg_list {
+    '(' ? ( function_def_arg * ( ',' function_def_arg ) ) ')'
+}
+
+class_definition {
+    'class' IDENTIFIER
+        ? ( '(' class_inheritance_item * ( ',' class_inheritance_item ) ')' )
+        '{' * ( class_body_item ) '}'
+}
+
+class_inheritance_item {
+    ? ( class_scope_operator ) compound_identifier ? ( 'as' IDENTIFIER )
+}
+
+class_body_item {
+    | ( class_scope_operator
+        ( type_name IDENTIFIER function_def_type_list )
+        ( type_name IDENTIFIER function_def_arg_list function_body )
+        ( type_name IDENTIFIER )
+        /* if 'create' or 'destroy' are defined in the class then they must
+            have a body. 'create' and 'destroy' are always public */
+        ( 'create' function_def_arg_list function_body )
+        ( 'destroy' function_body )
+        /* nested classes with scope */
+        class_definition
+        )
+}
+
+/*
+    This rule is when a class member function is defined outside of the
+    class definition. If the compound name doesn't match a class method name and
+    signature, then this will be added to it as though it was declared.
+*/
+class_member_definition {
+    compound_name function_def_arg_list function_body
+}
+
+function_reference_arg {
+    | ( literal_value compound_reference )
+}
+
+function_reference_arglist {
+    '(' ? ( function_reference_arg * ( ',' function_reference_arg ) ) ')'
+}
+
+function_reference {
+    compound_reference function_reference_arglist
+}
+
+/*
+    An array reference can be a dictionary or a list reference. The runtime must
+    figure out which one by type referencing.
+*/
+array_tail {
+    '[' | ( LITERAL_INTEGER LITERAL_UNSIGNED compound_reference ) ']'
+}
+
+array_reference {
+    IDENTIFIER array_tail * ( array_tail )
+}
+
+/*
+    This is used as introspection to see what the actual type of a compound
+    reference is. If it is used in a numeric expression or one that does not
+    compare to a native type or a class, then the comparison is false. If the
+    comparison can be evaluated at compile time and it does not evaluate to a
+    correct value then issue a warning about it always being a false comparison.
+*/
+type_statement {
+    'type' '(' compound_reference ')'
+}
+
+/*
+    If a boolean value is used as a numerical value, then that is a syntax
+    error. The compiler and the runtime need to check for this.
+*/
+expr_primary {
+    | ( literal_value
+        compound_reference
+        type_statement
+        'true' 'false'
+        ( '(' expression ')' )
+    )
+}
+
+/*
+    Lowest precedence to highest.
+*/
+expression {
+    expr_or
+}
+
+expr_or {
+    | ( expr_and
+        ( expr_and |('or' '|') expr_or )
+    )
+}
+
+expr_and {
+    | ( expr_equal
+        ( expr_equal |('and' '&') expr_and )
+    )
+}
+
+expr_equal {
+    | ( expr_magnitude
+        ( expr_magnitude |('==' 'equ' '!=' 'nequ') expr_equal )
+    )
+}
+
+expr_magnitude {
+    |( expr_term
+        ( expr_term |('>' 'lt' '<' 'gt' '>=' 'lte' 'gte' '<=') expr_magnitude )
+    )
+}
+
+expr_term {
+    | ( expr_factor
+        ( expr_factor | ('+' '-') expr_term )
+    )
+}
+
+expr_factor {
+    | ( expr_power
+        ( expr_power | ('*' '/' '%') expr_factor )
+    )
+}
+
+expr_power {
+    | ( expr_unary
+        ( expr_unary '^' expr_power )
+    )
+}
+
+expr_unary {
+    |( expr_primary
+        (  | ('!' '-' 'not') expr_primary )
+    )
+}

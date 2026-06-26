@@ -13,7 +13,7 @@ add_subdirectory(tests EXCLUDE_FROM_ALL)
 add_subdirectory(docs EXCLUDE_FROM_ALL)
 
 file(GLOB_RECURSE format_xxfiles
-    ${PROJECT_SOURCE_DIR}/src/*.c
+    ${PROJECT_SOURCE_DIR}/src/*.cpp
     ${PROJECT_SOURCE_DIR}/src/*.h
 )
 
