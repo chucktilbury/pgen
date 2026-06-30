@@ -15,7 +15,7 @@ rule {
     A non_terminal_symbol is all lower case.
 */
 non_terminal_symbol {
-    NON_TERMAINL_NAME
+    NON_TERMINAL_NAME
 }
 
 /*

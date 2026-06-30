@@ -25,6 +25,9 @@ class Token {
 
 public:
     Token(File*);
+    ~Token() {
+        cout << "discard token: " << text << endl;
+    }
 
     string& get_text() {
         return text;
@@ -35,21 +38,26 @@ public:
     }
 
     const char* type_to_str();
+
     friend ostream& operator<<(ostream& os, Token* tok) {
-        os << "str: \"" << tok->text << "\" type: " << tok->type_to_str();
+        string fmt = format("{:>4}: {:>4}: ", tok->line, tok->col);
+        os << fmt << "str: \"" << tok->get_text() << "\" type: " << tok->type_to_str();
         return os;
     }
 
 private:
     string text;
     token_type_t type;
+    File* file;
+    int line;
+    int col;
 
-    void consume_multi_line_comment(File*);
-    void consume_single_line_comment(File*);
+    void consume_multi_line_comment();
+    void consume_single_line_comment();
     bool check_terminal(const string&);
-    void read_symbol(File*);
-    void read_operator(File*);
-    void read_dquote(File*);
-    void read_squote(File*);
+    void read_symbol();
+    void read_operator();
+    void read_dquote();
+    void read_squote();
 };
 

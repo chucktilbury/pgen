@@ -35,8 +35,8 @@ public:
         return file.is_open();
     }
 
-private:
     const string& fname;
+private:
     fstream file;
     int line_no;
     int col_no;

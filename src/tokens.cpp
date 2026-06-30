@@ -6,7 +6,7 @@
 
 using namespace std;
 
-void Token::consume_multi_line_comment(File* file) {
+void Token::consume_multi_line_comment() {
 
     bool finished = false;
 
@@ -30,7 +30,7 @@ void Token::consume_multi_line_comment(File* file) {
     }
 }
 
-void Token::consume_single_line_comment(File* file) {
+void Token::consume_single_line_comment() {
 
     bool finished = false;
 
@@ -60,7 +60,7 @@ bool Token::check_terminal(const string& text) {
     return true;
 }
 
-void Token::read_symbol(File* file) {
+void Token::read_symbol() {
 
     bool finished = false;
 
@@ -84,7 +84,7 @@ void Token::read_symbol(File* file) {
         type = TOK_END_OF_FILE;
 }
 
-void Token::read_operator(File* file) {
+void Token::read_operator() {
 
     int ch = file->get_char();
     switch(ch) {
@@ -144,7 +144,7 @@ void Token::read_operator(File* file) {
     }
 }
 
-void Token::read_dquote(File* file) {
+void Token::read_dquote() {
 
     file->consume_char(); // consume the leading '\"'
     bool finished = false;
@@ -178,7 +178,7 @@ void Token::read_dquote(File* file) {
     type = TOK_DSTR;
 }
 
-void Token::read_squote(File* file) {
+void Token::read_squote() {
 
     file->consume_char(); // consume the leading '\''
     bool finished = false;
@@ -214,6 +214,7 @@ void Token::read_squote(File* file) {
 
 Token::Token(File* file) {
 
+    this->file = file;
     bool finished = false;
 
     while(!finished) {
@@ -221,9 +222,9 @@ Token::Token(File* file) {
         if(ch == '/') {
             ch = file->consume_char();
             if(ch == '*')
-                consume_multi_line_comment(file);
+                consume_multi_line_comment();
             else if(ch == '/')
-                consume_single_line_comment(file);
+                consume_single_line_comment();
             else {
                 text += '/';
                 text += ch;
@@ -237,19 +238,19 @@ Token::Token(File* file) {
         // else if(isdigit(ch)) {
         // }
         else if(isalpha(ch) || ch == '_') {
-            read_symbol(file);
+            read_symbol();
             finished = true;
         }
         else if(ch == '\"') {
-            read_dquote(file);
+            read_dquote();
             finished = true;
         }
         else if(ch == '\'') {
-            read_squote(file);
+            read_squote();
             finished = true;
         }
         else if(ispunct(ch)) {
-            read_operator(file);
+            read_operator();
             finished = true;
         }
         else if(ch == EOF) {
@@ -265,6 +266,8 @@ Token::Token(File* file) {
                     endl;
         }
     }
+    line = file->get_line_no();
+    col = file->get_col_no();
 }
 
 const char* Token::type_to_str() {
