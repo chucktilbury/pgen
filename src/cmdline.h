@@ -4,6 +4,9 @@
 #include <vector>
 #include <iostream>
 #include <cstdint>
+#include <filesystem>
+
+#include "logger.h"
 
 using namespace std;
 
@@ -85,12 +88,11 @@ public:
 class CmdLine {
 
 public:
-    // CmdLine(string& pre, string& vers, string& name) :
-    //         preamble(pre), version(vers), name(name) {}
 
     CmdLine(const char* name, const char* pre, const char* vers, char* pname) :
             preamble(new string(pre)), version(new string(vers)),
-            name(new string(name)), pname(new string(pname)) {}
+            name(new string(name)), pname(new string(pname)), logger(DEBUG) {
+    }
 
     // add command option. interface to the option class
     void add(int short_opt,
@@ -105,7 +107,11 @@ public:
     void parse(int, char** argv);
 
     // return the value of the command option according to its type
-    string* get_opt(const string& name);
+    string* get_string_opt(const string& name);
+    int get_int_opt(const string& name);
+    bool get_bool_opt(const string& name);
+    vector<string*>& get_opt_vector(const string& name);
+    bool seen(const string& name);
 
     void add_help() {
         add('h', "help", NULL, "Print this helpful information", NULL, CMD_HELP);
@@ -115,6 +121,17 @@ public:
         add('V', "version", NULL, "Show the program version", NULL, CMD_VERS);
     }
 
+    // Use a path variable to locate a file in the file system. Return the
+    // fully qualified name.
+    string find_file(string name);
+    void add_path(vector<string*> name_lst);
+    void add_path(vector<string> name_lst);
+    void add_dir(const string& name);
+    void add_dir(string* name);
+    void add_dir(const filesystem::directory_entry& name);
+
+    void dump_opts();
+
 private:
     string* preamble;
     string* version;
@@ -123,6 +140,8 @@ private:
     vector<CmdLineOpt*> opts;
     vector<string> argv;
     vector<string>::iterator token;
+    vector<string> search_path;
+    Logger logger;
     int files;
 
     void show_version() { cout << "version: " << *version << endl; }
@@ -136,7 +155,7 @@ private:
     void parse_short_option();
     CmdLineOpt* find_option(const string& name);
 
-    void dump_opts();
+    //void dump_opts();
 
 };
 

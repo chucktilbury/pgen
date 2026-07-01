@@ -1,5 +1,8 @@
 
 #include <format>
+#include <string>
+#include <sstream>
+#include <algorithm>
 #include "cmdline.h"
 
 using namespace std;
@@ -109,6 +112,7 @@ void CmdLine::store_environment(char** env) {
 
         vector<string> tokens = split_string(env[i], "=");
         ptr->set_name(new string(tokens[0]));
+        ptr->flags = CMD_SEEN;
         //cout << tokens[0] << endl;
 
         tokens = split_string(tokens[1], ":");
@@ -207,7 +211,6 @@ void CmdLine::parse_long_option() {
                         }
                     }
                 }
-
                 break;
             }
         }
@@ -301,7 +304,6 @@ void CmdLine::parse_short_option() {
                         }
                     }
                 }
-
                 break;
             }
         }
@@ -322,6 +324,7 @@ void CmdLine::parse(int argc, char** argv, char** env) {
 
     // store the environment
     store_environment(env);
+
     //dump_opts();
 }
 
@@ -382,9 +385,9 @@ CmdLineOpt* CmdLine::find_option(const string& name) {
 
     for(auto x: opts) {
         if(x->name) {
-            cout << "compare: " << *x->name << endl;
+            //cout << "compare: " << *x->name << endl;
             if(!name.compare(string(*x->name))) {
-                cout << "found: " << *x->name << endl;
+                //cout << "found: " << *x->name << endl;
                 return x;
             }
         }
@@ -393,10 +396,38 @@ CmdLineOpt* CmdLine::find_option(const string& name) {
 }
 
 // return the value of the command option according to its type
-string* CmdLine::get_opt(const string& name) {
+string* CmdLine::get_string_opt(const string& name) {
 
     CmdLineOpt* opt = find_option(name);
     return *opt->value.begin();
+}
+
+int CmdLine::get_int_opt(const string& name) {
+
+    CmdLineOpt* opt = find_option(name);
+    return stoi(*opt->value[0]);
+
+}
+
+bool CmdLine::get_bool_opt(const string& name) {
+
+    CmdLineOpt* opt = find_option(name);
+    return stoi(*opt->value[0]) == 0? false: true;
+}
+
+vector<string*>& CmdLine::get_opt_vector(const string& name) {
+
+    CmdLineOpt* opt = find_option(name);
+    return opt->value;
+}
+
+bool CmdLine::seen(const string& name) {
+
+    CmdLineOpt* opt = find_option(name);
+    if(opt)
+        return opt->flags & CMD_SEEN;
+    else
+        return false;
 }
 
 void CmdLine::dump_opts() {
@@ -412,5 +443,91 @@ void CmdLine::dump_opts() {
         }
 
         cout << endl;
+    }
+}
+
+string CmdLine::find_file(string name) {
+
+    //stringstream tmp;
+    for(auto x: search_path) {
+        // cout << x << endl;
+        string tmp(x + name);
+        logger.log(INFO, format("try file name: {}", tmp));
+        if(filesystem::exists(tmp)) {
+            logger.log(INFO, "found");
+            return tmp;
+        }
+    }
+
+    //return filesystem::canonical(tmp);
+   return name;
+}
+
+void CmdLine::add_path(vector<string> name_lst) {
+
+    for(auto x: name_lst) {
+        try {
+            add_dir(filesystem::canonical(x));
+            for(const auto& entry: filesystem::directory_iterator(x))
+                add_dir(canonical(entry));
+        }
+        catch(filesystem::filesystem_error const& ex) {
+            stringstream tmp;
+            tmp << ex.path1();
+            logger.log(WARNING, format("path entry \"{}\" does not exist", tmp.str()));
+        }
+    }
+}
+
+void CmdLine::add_path(vector<string*> name_lst) {
+
+    for(auto x: name_lst) {
+        try {
+            add_dir(filesystem::canonical(*x));
+            for(const auto& entry: filesystem::directory_iterator(filesystem::canonical(*x))) {
+                add_dir(entry);
+            }
+        }
+        catch(filesystem::filesystem_error const& ex) {
+            stringstream tmp;
+            tmp << ex.path1();
+            logger.log(WARNING, format("path entry \"{}\" does not exist", tmp.str()));
+        }
+    }
+}
+
+void CmdLine::add_dir(const string& name) {
+
+    if(filesystem::is_directory(name)) {
+        string s = name + "/";
+        search_path.push_back(s);
+    }
+}
+
+void CmdLine::add_dir(string* name) {
+
+    if(filesystem::is_directory(*name))
+        search_path.push_back((*name).append("/"));
+}
+
+static string strip(const string& s) {
+
+    string x("");
+    for(auto c: s) {
+        if(c != '\"')
+            x += c;
+    }
+
+    return x;
+}
+
+void CmdLine::add_dir(const filesystem::directory_entry& name) {
+
+    if(filesystem::is_directory(filesystem::status(name))) {
+        //cout << name << endl;
+        stringstream tmp;
+        tmp << name;         // use the operator<< to get a string into the stream
+        string s(tmp.str()); // get the actual string
+        search_path.push_back(strip(s).append("/")); // save it
     }
 }

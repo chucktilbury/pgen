@@ -27,6 +27,14 @@ CmdLine* cmdline(int argc, char** argv, char** env) {
 
     cmd->parse(argc, argv, env);
 
+    //cmd->add_dir(".");
+    if(cmd->seen("path"))
+        cmd->add_path(cmd->get_opt_vector("path"));
+
+    if(cmd->seen("PATH"))
+        cmd->add_path(cmd->get_opt_vector("PATH"));
+
+    //cmd->dump_opts();
     // INIT_TRACE(NULL);
     return cmd;
 }
@@ -34,11 +42,13 @@ CmdLine* cmdline(int argc, char** argv, char** env) {
 int main(int argc, char** argv, char** env) {
 
     CmdLine* cmd = cmdline(argc, argv, env);
-    string* file = cmd->get_opt("files");
+    string* file = cmd->get_string_opt("files");
 
-    cout << "file: " << *file << endl;
+    string filename = cmd->find_file(*file);
 
-    Scanner scn{"../tests/pgen-grammar.txt"};
+
+    //Scanner scn{"../tests/pgen-grammar.txt"};
+    Scanner scn{filename};
     int line = 1;
     //Token* tok = scn.token();
 
