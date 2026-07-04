@@ -3,6 +3,9 @@
 #include <vector>
 #include "tokens.h"
 
+#include "logger.h"
+extern Logger logger;
+
 using namespace std;
 
 class Scanner {

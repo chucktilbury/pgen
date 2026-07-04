@@ -349,6 +349,7 @@ void CmdLine::parse(int argc, char** argv) {
                 if(x->flags & CMD_ANON) {
                     x->value.push_back(&(*token));
                     found = true;
+                    files++;
                     break;
                 }
             }
@@ -448,23 +449,25 @@ void CmdLine::dump_opts() {
 
 string CmdLine::find_file(string name) {
 
+    ENTER;
     //stringstream tmp;
     for(auto x: search_path) {
         // cout << x << endl;
         string tmp(x + name);
-        logger.log(INFO, format("try file name: {}", tmp));
+        TRACE(format("try file name: {}", tmp));
         if(filesystem::exists(tmp)) {
-            logger.log(INFO, "found");
-            return tmp;
+            TRACE("found");
+            RETURN(tmp);
         }
     }
 
     //return filesystem::canonical(tmp);
-   return name;
+   RETURN(name);
 }
 
 void CmdLine::add_path(vector<string> name_lst) {
 
+    ENTER;
     for(auto x: name_lst) {
         try {
             add_dir(filesystem::canonical(x));
@@ -474,13 +477,16 @@ void CmdLine::add_path(vector<string> name_lst) {
         catch(filesystem::filesystem_error const& ex) {
             stringstream tmp;
             tmp << ex.path1();
-            logger.log(WARNING, format("path entry \"{}\" does not exist", tmp.str()));
+            logger.warning(format("path entry \"{}\" does not exist", tmp.str()));
         }
     }
+    RETURN();
 }
 
 void CmdLine::add_path(vector<string*> name_lst) {
 
+    ENTER;
+    logger.push_level(Logger::WARNING);
     for(auto x: name_lst) {
         try {
             add_dir(filesystem::canonical(*x));
@@ -491,14 +497,17 @@ void CmdLine::add_path(vector<string*> name_lst) {
         catch(filesystem::filesystem_error const& ex) {
             stringstream tmp;
             tmp << ex.path1();
-            logger.log(WARNING, format("path entry \"{}\" does not exist", tmp.str()));
+            logger.warning(format("path entry \"{}\" does not exist", tmp.str()));
         }
     }
+    logger.pop_level();
+    RETURN();
 }
 
 void CmdLine::add_dir(const string& name) {
 
     if(filesystem::is_directory(name)) {
+        TRACE(format("dirname: {}", name));
         string s = name + "/";
         search_path.push_back(s);
     }
@@ -506,8 +515,10 @@ void CmdLine::add_dir(const string& name) {
 
 void CmdLine::add_dir(string* name) {
 
-    if(filesystem::is_directory(*name))
+    if(filesystem::is_directory(*name)) {
+        TRACE(format("dirname: {}", *name));
         search_path.push_back((*name).append("/"));
+    }
 }
 
 static string strip(const string& s) {
@@ -528,6 +539,7 @@ void CmdLine::add_dir(const filesystem::directory_entry& name) {
         stringstream tmp;
         tmp << name;         // use the operator<< to get a string into the stream
         string s(tmp.str()); // get the actual string
+        TRACE(format("dirname: {}", s));
         search_path.push_back(strip(s).append("/")); // save it
     }
 }

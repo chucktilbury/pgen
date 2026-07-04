@@ -8,16 +8,16 @@
 
 #include "scanner.h"
 #include "cmdline.h"
-// #include "trace.h"
 
-// extern FILE* yyin; // would be defined in a FLEX scanner.
+#include "logger.h"
+Logger logger(Logger::DEBUG);
 
 CmdLine* cmdline(int argc, char** argv, char** env) {
 
     CmdLine* cmd = new CmdLine("PGEN", "PGEN Parser Generator", "0.0.1", argv[0]);
 
     // init_cmdline("template", "template project", "0.1");
-    cmd->add('v', "verbosity", "verbosity", "From 0 to 10. Print more information", "0", CMD_NUM | CMD_ARGS);
+    cmd->add('v', "verbosity", "verbosity", "use: \"debug\", \"info\", \"warn\", \"silent\".", "warn", CMD_STR | CMD_ARGS);
     cmd->add('p', "path", "path", "Add to the import path", "", CMD_STR | CMD_ARGS | CMD_LIST);
     cmd->add('d', "dump", "dump", "Dump text as the parser is generated", "", CMD_STR | CMD_ARGS | CMD_LIST);
     cmd->add_help();    // name "help" is reserved
@@ -27,7 +27,21 @@ CmdLine* cmdline(int argc, char** argv, char** env) {
 
     cmd->parse(argc, argv, env);
 
-    //cmd->add_dir(".");
+    if(cmd->seen("verbosity")) {
+        string lev = *cmd->get_string_opt("verbosity");
+        //cout << "here! " << lev << endl;;
+        if(!lev.compare("debug"))
+            logger.set_level(Logger::DEBUG);
+        else if(!lev.compare("info"))
+            logger.set_level(Logger::INFO);
+        else if(!lev.compare("warn"))
+            logger.set_level(Logger::WARNING);
+        else if(!lev.compare("silent"))
+            logger.set_level(Logger::SILENT);
+        else
+            logger.warning(format("invalid verbosity argument: {}", lev));
+    }
+
     if(cmd->seen("path"))
         cmd->add_path(cmd->get_opt_vector("path"));
 
@@ -36,14 +50,14 @@ CmdLine* cmdline(int argc, char** argv, char** env) {
 
     //cmd->dump_opts();
     // INIT_TRACE(NULL);
-    return cmd;
+    return(cmd);
 }
 
 int main(int argc, char** argv, char** env) {
 
+    ENTER;
     CmdLine* cmd = cmdline(argc, argv, env);
     string* file = cmd->get_string_opt("files");
-
     string filename = cmd->find_file(*file);
 
 
@@ -97,7 +111,7 @@ int main(int argc, char** argv, char** env) {
         scn.advance();
     }
 
-    return 0;
+    RETURN(0);
 
     while(scn.token()->get_type() != TOK_END_OF_FILE) {
         string fmt = format("{:>4}:{:>4}:{:>4}: ", line, scn.file()->get_line_no(), scn.file()->get_col_no());
@@ -123,5 +137,5 @@ int main(int argc, char** argv, char** env) {
 
     // printf("Hello Template: %s\n", argv[1]);
 
-    return 0;
+    RETURN(0);
 }

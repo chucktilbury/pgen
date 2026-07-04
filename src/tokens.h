@@ -2,6 +2,9 @@
 
 #include "fileio.h"
 
+#include "logger.h"
+extern Logger logger;
+
 using namespace std;
 
 typedef enum {

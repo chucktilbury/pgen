@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #include "logger.h"
+extern Logger logger;
 
 using namespace std;
 
@@ -91,7 +92,7 @@ public:
 
     CmdLine(const char* name, const char* pre, const char* vers, char* pname) :
             preamble(new string(pre)), version(new string(vers)),
-            name(new string(name)), pname(new string(pname)), logger(DEBUG) {
+            name(new string(name)), pname(new string(pname)) {
     }
 
     // add command option. interface to the option class
@@ -130,6 +131,7 @@ public:
     void add_dir(string* name);
     void add_dir(const filesystem::directory_entry& name);
 
+    void show_help();
     void dump_opts();
 
 private:
@@ -141,12 +143,10 @@ private:
     vector<string> argv;
     vector<string>::iterator token;
     vector<string> search_path;
-    Logger logger;
     int files;
 
     void show_version() { cout << "version: " << *version << endl; }
     void show_preamble() { cout << *name << ": " << *preamble << endl; }
-    void show_help();
     vector<string> split_string(string s, string limiters);
     void store_environment(char** env);
     string get_token();

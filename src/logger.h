@@ -8,113 +8,123 @@
 #include <print>
 #include <cstring>
 #include <cerrno>
+#include <vector>
+#include <format>
 
 using namespace std;
-
-typedef enum log_level_t {
-    OFF = 0,
-    DEBUG = 10,
-    INFO = 20,
-    WARNING = 30,
-    ERROR = 40,
-    FATAL = 50,
-} log_level_t;
 
 class Logger {
 
 public:
-    Logger(log_level_t level, const string name):
-            fname(name), log_level(level) {
+    enum {
+        SILENT = 0,
+        DEBUG = 10,
+        ENTER = 11,
+        RETURN = 12,
+        TRACE = 13,
+        INFO = 20,
+        WARNING = 30,
+        ERROR = 40,
+        FATAL = 50,
+        ALL = 500,
+    } ;
 
-        errors = 0;
-        outfile.open(fname, ios::app);
-        if(!outfile.is_open()) {
-            cerr << "error: cannot open log file: \""<< fname <<"\": "
-                    << strerror(errno) << endl;
-            exit(1);
+    Logger(int level) {
+        push_level(level);
+    }
+
+    void info(const string& msg) {
+        if(peek_level() <= INFO) {
+            pad();
+            print(stdout, "INFO: {}\n", msg);
         }
     }
 
-    Logger(log_level_t level):
-            fname(""), log_level(level)  {
-    }
-
-    ~Logger() {
-        outfile.close();
-    }
-
-    void log(log_level_t level, const string& msg) {
-
-        // time_t now = time(0);
-        // tm* timeinfo = localtime(&now);
-        // char timestamp[20];
-        // strftime(timestamp, sizeof(timestamp),
-        //         "%Y-%m-%d %H:%M:%S", timeinfo);
-
-        ostringstream log_entry;
-
-        if(level == FATAL) {
-            print(stderr, "fatal error: {}\n", msg);
-            errors++;
-
-            ostringstream log_entry;
-            log_entry // << "[" << timestamp << "] "
-                    << log_level_to_str(level) << ": " << msg << endl;
-
-            // Output to log file
-            if (outfile.is_open()) {
-                outfile << log_entry.str();
-                outfile.flush(); // Ensure immediate write to file
-            }
-
-            exit(1);
+    void warning(const string& msg) {
+        if(peek_level() <= WARNING) {
+            print(stderr, "warning: {}\n", msg);
+            warnings++;
         }
-        else if(level == ERROR) {
+    }
+
+    void error(const string& msg) {
+        if(peek_level() <= ERROR) {
             print(stderr, "error: {}\n", msg);
             errors++;
-
-            log_entry // << "[" << timestamp << "] "
-                    << log_level_to_str(level) << ": " << msg << endl;
-
-            // Output to log file
-            if (outfile.is_open()) {
-                outfile << log_entry.str();
-                outfile.flush(); // Ensure immediate write to file
-            }
-
         }
-        else if(level >= log_level) {
+    }
 
-            log_entry // << "[" << timestamp << "] "
-                    << log_level_to_str(level) << ": " << msg << endl;
+    void fatal(const string& msg) {
+        print(stderr, "fatal error: {}\n", msg);
+        errors++;
+        exit(1);
+    }
 
-            // Output to console
-            cout << log_entry.str();
-
-            // Output to log file
-            if (outfile.is_open()) {
-                outfile << log_entry.str();
-                outfile.flush(); // Ensure immediate write to file
-            }
-        }
+    void set_level(int lev) {
+        //print(stderr, "set level: {}\n", lev);
+        push_level(lev);
     }
 
     int get_errors() {
         return errors;
     }
 
-private:
-    const string fname;
-    ofstream outfile;
-    log_level_t log_level;
-    int errors;
-
-    const string log_level_to_str(log_level_t level) {
-        return (level == DEBUG)? "DEBUG" :
-            (level == INFO)? "INFO" :
-            (level == WARNING)? "WARNING" :
-            (level == ERROR)? "ERROR" :
-            (level == FATAL)? "FATAL" : "UNKNOWN";
+    int get_warnings() {
+        return warnings;
     }
+
+    void push_level(int lev) {
+        lev_stack.push_back(lev);
+    }
+
+    void pop_level() {
+        lev_stack.pop_back();
+    }
+
+    int peek_level() {
+        return lev_stack.back();
+    }
+
+    int get_level() {
+        return peek_level();
+    }
+
+    void inc_depth() { depth += dinc; }
+    void dec_depth() { depth -= dinc; }
+    void pad() { for(int i = 0; i < depth; i++) cout << ' '; }
+
+
+private:
+    //int log_level;
+    int errors;
+    int warnings;
+    int depth;
+    const int dinc = 2;
+    vector<int> lev_stack;
+
 };
+
+#define ENTER do { \
+    if(logger.get_level() <= Logger::DEBUG) { \
+        logger.pad(); \
+        print(stdout, "ENTER: {}\n", __PRETTY_FUNCTION__); \
+        logger.inc_depth(); \
+    } \
+} while(false)
+
+#define RETURN(...) do { \
+    if(logger.get_level() <= Logger::DEBUG) { \
+        logger.dec_depth(); \
+        logger.pad(); \
+        print(stdout, "RETURN({}) {}\n", #__VA_ARGS__, __PRETTY_FUNCTION__); \
+    } \
+    return __VA_ARGS__; \
+} while(false);
+
+#define TRACE(m) do { \
+    if(logger.get_level() <= Logger::DEBUG) { \
+        logger.pad(); \
+        print(stdout, "TRACE: {}\n", m); \
+    } \
+} while(false)
 

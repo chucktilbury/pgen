@@ -3,6 +3,9 @@
 #include <fstream>
 #include <string>
 
+#include "logger.h"
+extern Logger logger;
+
 using namespace std;
 
 class File {
