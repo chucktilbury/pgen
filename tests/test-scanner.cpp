@@ -7,32 +7,62 @@
 #include <format>
 
 #include "scanner.h"
-// #include "cmdline.h"
-// #include "trace.h"
+#include "cmdline.h"
 
-// extern FILE* yyin; // would be defined in a FLEX scanner.
+#include "logger.h"
+Logger logger(Logger::WARNING);
 
-// void cmdline(int argc, char** argv, char** env) {
+CmdLine* cmdline(int argc, char** argv, char** env) {
 
-//     init_cmdline("template", "template project", "0.1");
-//     add_cmdline('v', "verbosity", "verbosity", "From 0 to 10. Print more information", "0", NULL, CMD_NUM | CMD_ARGS);
-//     add_cmdline('p', "path", "path", "Add to the import path", "", NULL, CMD_STR | CMD_ARGS | CMD_LIST);
-//     add_cmdline('d', "dump", "dump", "Dump text as the parser is generated", "", NULL, CMD_STR | CMD_ARGS | CMD_LIST);
-//     add_cmdline('h', "help", NULL, "Print this helpful information", NULL, cmdline_help, CMD_NONE);
-//     add_cmdline('V', "version", NULL, "Show the program version", NULL, cmdline_vers, CMD_NONE);
-//     add_cmdline(0, NULL, NULL, NULL, NULL, NULL, CMD_DIV);
-//     add_cmdline(0, NULL, "files", "File name(s) to input", NULL, NULL, CMD_REQD | CMD_ANON);
+    CmdLine* cmd = new CmdLine("PGEN", "PGEN Parser Generator", "0.0.1", argv[0]);
 
-//     parse_cmdline(argc, argv, env);
+    // init_cmdline("template", "template project", "0.1");
+    cmd->add('v', "verbosity", "verbosity", "use: \"debug\", \"info\", \"warn\", \"silent\".", "warn", CMD_STR | CMD_ARGS);
+    cmd->add('p', "path", "path", "Add to the import path", "", CMD_STR | CMD_ARGS | CMD_LIST);
+    cmd->add('d', "dump", "dump", "Dump text as the parser is generated", "", CMD_STR | CMD_ARGS | CMD_LIST);
+    cmd->add_help();    // name "help" is reserved
+    cmd->add_version(); // name "version" is reserved
+    cmd->add(0, NULL, NULL, NULL, NULL, CMD_DIV);
+    cmd->add(0, NULL, "files", "File name(s) to input", NULL, CMD_REQD | CMD_ANON);
 
-//     INIT_TRACE(NULL);
-// }
+    cmd->parse(argc, argv, env);
 
-// int main(int argc, char** argv, char** env) {
-int main() {
+    if(cmd->seen("verbosity")) {
+        string lev = *cmd->get_string_opt("verbosity");
+        //cout << "here! " << lev << endl;;
+        if(!lev.compare("debug"))
+            logger.set_level(Logger::DEBUG);
+        else if(!lev.compare("info"))
+            logger.set_level(Logger::INFO);
+        else if(!lev.compare("warn"))
+            logger.set_level(Logger::WARNING);
+        else if(!lev.compare("silent"))
+            logger.set_level(Logger::SILENT);
+        else
+            logger.warning(format("invalid verbosity argument: {}", lev));
+    }
 
-    Scanner scn{"../tests/pgen-grammar.txt"};
-    int line = 1;
+    if(cmd->seen("path"))
+        cmd->add_path(cmd->get_opt_vector("path"));
+
+    if(cmd->seen("PATH"))
+        cmd->add_path(cmd->get_opt_vector("PATH"));
+
+    //cmd->dump_opts();
+    // INIT_TRACE(NULL);
+    return(cmd);
+}
+
+int main(int argc, char** argv, char** env) {
+
+    CmdLine* cmd = cmdline(argc, argv, env);
+
+    ENTER; // after verbosity is init
+    string* file = cmd->get_string_opt("files");
+    string filename = cmd->find_file(*file);
+    Scanner scn{filename};
+    ParserStatus* status(&scn);
+
     //Token* tok = scn.token();
 
     cout << "read 5 tokens" << endl;
@@ -80,7 +110,7 @@ int main() {
         scn.advance();
     }
 
-    return 0;
+    RETURN(0);
 
     while(scn.token()->get_type() != TOK_END_OF_FILE) {
         string fmt = format("{:>4}:{:>4}:{:>4}: ", line, scn.file()->get_line_no(), scn.file()->get_col_no());
@@ -106,5 +136,5 @@ int main() {
 
     // printf("Hello Template: %s\n", argv[1]);
 
-    return 0;
+    RETURN(0);
 }

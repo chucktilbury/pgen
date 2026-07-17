@@ -4,6 +4,12 @@
 #include <cctype>
 #include "tokens.h"
 
+#include "logger.h"
+extern Logger logger;
+
+#include "errors.h"
+extern Errors errors;
+
 using namespace std;
 
 void Token::consume_multi_line_comment() {
@@ -20,11 +26,7 @@ void Token::consume_multi_line_comment() {
             }
         }
         else if(ch == EOF) {
-            cerr << "error: " << file->get_file_name() <<
-                    ": " << file->get_line_no() <<
-                    ": " << file->get_col_no() <<
-                    ": " << "unexpected end of file in a comment" <<
-                    endl;
+            errors.error(file, "unexpected end of file in a comment");
             exit(1);
         }
     }
@@ -41,11 +43,7 @@ void Token::consume_single_line_comment() {
             finished = true;
         }
         else if(ch == EOF) {
-            cerr << "error: " << file->get_file_name() <<
-                    ": " << file->get_line_no() <<
-                    ": " << file->get_col_no() <<
-                    ": " << "unexpected end of file in a comment" <<
-                    endl;
+            errors.error(file, "unexpected end of file in a comment");
             exit(1);
         }
     }
@@ -98,16 +96,6 @@ void Token::read_operator() {
             file->consume_char();
             type = TOK_CPAREN;
             break;
-        case '{':
-            text += ch;
-            file->consume_char();
-            type = TOK_OCURLY;
-            break;
-        case '}':
-            text += ch;
-            file->consume_char();
-            type = TOK_CCURLY;
-            break;
         case '?':
             text += ch;
             file->consume_char();
@@ -134,12 +122,7 @@ void Token::read_operator() {
             type = TOK_BANG;
             break;
         default:
-            cerr << "error: " << file->get_file_name() <<
-                    ": " << file->get_line_no() <<
-                    ": " << file->get_col_no() <<
-                    ": " << "unexpected or unhandled operator" <<
-                    ": " << format("{:c} ({:#02X})", ch, ch) <<
-                    endl;
+            errors.error(file, format("unexpected or unhandled operator {:c} ({:#02X})", ch, ch));
             exit(1);
     }
 }
@@ -155,19 +138,10 @@ void Token::read_dquote() {
             finished = true;
         }
         else if(ch == '\n') {
-            cerr << "error: " << file->get_file_name() <<
-                    ": " << file->get_line_no() <<
-                    ": " << file->get_col_no() <<
-                    ": " << "unexpected newline in quoted string" <<
-                    endl;
-            exit(1);
+            errors.error(file, "unexpected newline in quoted string");
         }
         else if(ch == EOF) {
-            cerr << "error: " << file->get_file_name() <<
-                    ": " << file->get_line_no() <<
-                    ": " << file->get_col_no() <<
-                    ": " << "unexpected end of file in quoted string" <<
-                    endl;
+            errors.error(file, "unexpected end of file in quoted string");
             exit(1);
         }
         else {
@@ -175,7 +149,7 @@ void Token::read_dquote() {
             file->consume_char();
         }
     }
-    type = TOK_DSTR;
+    type = TOK_QSTR;
 }
 
 void Token::read_squote() {
@@ -189,19 +163,10 @@ void Token::read_squote() {
             finished = true;
         }
         else if(ch == '\n') {
-            cerr << "error: " << file->get_file_name() <<
-                    ": " << file->get_line_no() <<
-                    ": " << file->get_col_no() <<
-                    ": " << "unexpected newline in quoted string" <<
-                    endl;
-            exit(1);
+            errors.error(file, "unexpected newline in quoted string");
         }
         else if(ch == EOF) {
-            cerr << "error: " << file->get_file_name() <<
-                    ": " << file->get_line_no() <<
-                    ": " << file->get_col_no() <<
-                    ": " << "unexpected end of file in quoted string" <<
-                    endl;
+            errors.error(file, "unexpected end of file in quoted string");
             exit(1);
         }
         else {
@@ -209,7 +174,7 @@ void Token::read_squote() {
             file->consume_char();
         }
     }
-    type = TOK_SSTR;
+    type = TOK_QSTR;
 }
 
 Token::Token(File* file) {
@@ -255,30 +220,21 @@ Token::Token(File* file) {
         }
         else if(ch == EOF) {
             type = TOK_END_OF_FILE;
+            text = "end of file";
             finished = true;
         }
         else {
-            cerr << "warning: " << file->get_file_name() <<
-                    ": " << file->get_line_no() <<
-                    ": " << file->get_col_no() <<
-                    ": " << "unexpected or unhandled character" <<
-                    ": " << format("{:c} ({:#02X})", ch, ch) <<
-                    endl;
+            errors.warning(file, format("unexpected or unhandled character: {:c} ({:#02X})", ch, ch));
         }
     }
-    line = file->get_line_no();
-    col = file->get_col_no();
 }
 
 const char* Token::type_to_str() {
 
     return (type == TOK_END_OF_FILE)? "END_OF_FILE" :
-        (type == TOK_DSTR)? "DSTR (TERMINAL)" :
-        (type == TOK_SSTR)? "SSTR (TERMINAL)" :
+        (type == TOK_QSTR)? "DSTR (TERMINAL)" :
         (type == TOK_OPAREN)? "OPAREN" :
         (type == TOK_CPAREN)? "CPAREN" :
-        (type == TOK_OCURLY)? "OCURLY" :
-        (type == TOK_CCURLY)? "CCURLY" :
         (type == TOK_STAR)? "STAR" :
         (type == TOK_PIPE)? "PIPE" :
         (type == TOK_QUESTION)? "QUESTION" :

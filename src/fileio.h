@@ -3,9 +3,6 @@
 #include <fstream>
 #include <string>
 
-#include "logger.h"
-extern Logger logger;
-
 using namespace std;
 
 class File {
@@ -26,23 +23,16 @@ public:
         return fname;
     }
 
-    int get_line_no() {
-        return line_no;
-    }
-
-    int get_col_no() {
-        return col_no;
-    }
-
     bool is_open() {
         return file.is_open();
     }
 
     const string& fname;
-private:
-    fstream file;
     int line_no;
     int col_no;
+
+private:
+    fstream file;
     int crnt_char;
 };
 

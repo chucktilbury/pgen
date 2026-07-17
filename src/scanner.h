@@ -3,9 +3,6 @@
 #include <vector>
 #include "tokens.h"
 
-#include "logger.h"
-extern Logger logger;
-
 using namespace std;
 
 class Scanner {
@@ -18,17 +15,15 @@ public:
     Token* token();
     Token* advance();
     File* file();
-    int mark_queue();
-    void reset_queue(size_t);
-    void flush_queue(size_t);
+    void mark_queue();
+    void reset_queue();
+    void flush_queue();
 
 private:
     vector<Token*> token_queue;
     vector<File*> file_queue;
-    size_t crnt_index;
+    vector<int> tracker;
+    int crnt_index;
 
-    int end_index() {
-        return token_queue.size()-1;
-    }
 };
 

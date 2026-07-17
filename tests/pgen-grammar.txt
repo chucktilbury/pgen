@@ -3,49 +3,31 @@
     This is the grammar for the input to PGEN.
 */
 
-grammar {
-    + ( rule )
-}
+grammar ( + rule )
 
-rule {
-    non_terminal_symbol '{' expression '}'
-}
+rule ( NON_TERMINAL grouping_expr )
 
-/*
-    A non_terminal_symbol is all lower case.
-*/
-non_terminal_symbol {
-    NON_TERMINAL_NAME
-}
-
-/*
-    A terminal name is all upper case.
-*/
-terminal_symbol {
-    TERMINAL_NAME
-}
-
-expr_primary {
-    | ( QSTRG // creates a terminal symbol
-        non_terminal_symbol
-        terminal_symbol
-        select_expr
-        repetition_expr
-        '(' expression ')'
-    )
-}
-
-expression {
+primary_expr (
+    QSTRG | // creates a TERMINAL symbol
+    TERMINAL |
+    NON_TERMINAL |
+    grouping_expr |
+    zero_or_one_expr |
+    zero_or_more_expr |
+    one_or_more_expr |
+    not_expr |
     select_expr
-}
+)
 
-select_expr {
-    | ( repetition_expr
-        '|' '(' + ( expr_primary ) ')'
-    )
-}
+grouping_expr ( '(' + primary_expr ')' )
 
-repetition_expr {
-    | ( '?' '+' '*' ) '(' + ( expr_primary ) ')'
-}
+select_expr ( primary_expr '|' primary_expr )
+
+zero_or_one_expr ( '?' primary_expr )
+
+one_or_more_expr ( '+' primary_expr )
+
+zero_or_more_expr ( '*' primary_expr )
+
+not_expr ( '!' primary_expr )
 

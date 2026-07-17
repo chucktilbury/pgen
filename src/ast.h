@@ -1,17 +1,18 @@
 
 #pragma once
 
-#include "parser.h"
+#include <ostream>
+
+#include "ast.h"
+#include "tokens.h"
 #include "logger.h"
 extern Logger logger;
 
 class AstGrammar;
 class AstRule;
-class AstNonTerminal;
-class AstTerminal;
-class AstExpression;
+class AstPrimary;
+class AstGrouping;
 class AstSelect;
-class AstSequence;
 class AstZeroOrOne;
 class AstZeroOrMore;
 class AstOneOrMore;
@@ -21,258 +22,296 @@ class AstNode {
 
 public:
     enum ast_type {
-        AST_GRAMMAR,
-        AST_RULE,
         AST_NON_TERMINAL,
         AST_TERMINAL,
-        AST_EXPRESSION,
+        AST_GRAMMAR,
+        AST_RULE,
+        AST_PRIMARY,
+        AST_GROUPING,
         AST_SELECT,
-        AST_SEQUENCE,
         AST_ZERO_OR_ONE,
         AST_ZERO_OR_MORE,
         AST_ONE_OR_MORE,
         AST_NOT,
     };
 
-    AstNode(ParserState* ps, int ty) {
+    AstNode(Token* tok, int ty) {
+        token = tok;
         type = ty;
-        line = ps->get_line_no();
-        col = ps->get_col_no();
-        fname = ps->get_file_name();
     }
 
     virtual void traverse() = 0;
 
+    friend ostream& operator << (ostream &strm, const AstNode& a) {
+        string str = (a.type == AST_GRAMMAR)? "GRAMMAR" :
+            (a.type == AST_RULE)? "RULE" :
+            (a.type == AST_NON_TERMINAL)? "NON_TERMINAL" :
+            (a.type == AST_TERMINAL)? "TERMINAL" :
+            (a.type == AST_PRIMARY)? "PRIMARY" :
+            (a.type == AST_SELECT)? "SELECT" :
+            (a.type == AST_GROUPING)? "GROUPING" :
+            (a.type == AST_ZERO_OR_ONE)? "ZERO_OR_ONE" :
+            (a.type == AST_ZERO_OR_MORE)? "ZERO_OR_MORE" :
+            (a.type == AST_ONE_OR_MORE)? "ONE_OR_MORE" :
+            (a.type == AST_NOT)? "NOT" : "UNKNOWN";
+        return strm << str;
+    }
+
+    string type_to_str() {
+        return string((type == AST_GRAMMAR)? "GRAMMAR" :
+            (type == AST_RULE)? "RULE" :
+            (type == AST_NON_TERMINAL)? "NON_TERMINAL" :
+            (type == AST_TERMINAL)? "TERMINAL" :
+            (type == AST_PRIMARY)? "PRIMARY" :
+            (type == AST_SELECT)? "SELECT" :
+            (type == AST_GROUPING)? "GROUPING" :
+            (type == AST_ZERO_OR_ONE)? "ZERO_OR_ONE" :
+            (type == AST_ZERO_OR_MORE)? "ZERO_OR_MORE" :
+            (type == AST_ONE_OR_MORE)? "ONE_OR_MORE" :
+            (type == AST_NOT)? "NOT" : "UNKNOWN");
+    }
+
+    string type_to_str(AstNode* node) {
+        return string((node->type == AST_GRAMMAR)? "GRAMMAR" :
+            (node->type == AST_RULE)? "RULE" :
+            (node->type == AST_NON_TERMINAL)? "NON_TERMINAL" :
+            (node->type == AST_TERMINAL)? "TERMINAL" :
+            (node->type == AST_PRIMARY)? "PRIMARY" :
+            (node->type == AST_SELECT)? "SELECT" :
+            (node->type == AST_GROUPING)? "GROUPING" :
+            (node->type == AST_ZERO_OR_ONE)? "ZERO_OR_ONE" :
+            (node->type == AST_ZERO_OR_MORE)? "ZERO_OR_MORE" :
+            (node->type == AST_ONE_OR_MORE)? "ONE_OR_MORE" :
+            (node->type == AST_NOT)? "NOT" : "UNKNOWN");
+    }
+
+    int get_line_no() { return token->file->line_no; }
+    int get_col_no() { return token->file->col_no; }
+    const string& get_file_name() { return token->file->fname; }
+
 private:
     int type;
-    int line;
-    int col;
-    string fname;
+    Token* token;
 };
 
 class AstGrammar: public AstNode {
 
 public:
-    AstGrammar(ParserState* ps): AstNode(ps, AstNode::AST_GRAMMAR) {}
+    AstGrammar(Token* tok): AstNode(tok, AstNode::AST_GRAMMAR) {}
 
     virtual void traverse() override {
-        for(auto node: items) {
-            node->traverse();
+        ENTER;
+        START(" traverse ");
+        for(auto node: *items) {
+            ((AstNode*)node)->traverse();
         }
+        END(" traverse ");
+        RETURN();
     }
 
-    virtual void action() = 0;
+    virtual void action() {}
 
-    void add_item(AstNode* node) {
-        items.push_back(node);
+    void set_list(vector<AstRule*>* lst) {
+        items = lst;
+    }
+
+    void add_item(AstRule* node) {
+        items->push_back(node);
     }
 
 private:
-    vector<AstNode*> items;
+    vector<AstRule*>* items;
 };
 
 class AstRule: public AstNode {
 
 public:
-    AstRule(ParserState* ps): AstNode(ps, AstNode::AST_RULE) {}
+    AstRule(Token* tok): AstNode(tok, AstNode::AST_RULE) {}
 
     virtual void traverse() override {
-        ((AstNode*)(nt))->traverse();
-        ((AstNode*)(seq))->traverse();
+        ENTER;
+        TRACE(format("define non-terminal symbol: {}", *nt));
+        ((AstNode*)(expr))->traverse();
+        RETURN();
     }
 
-    virtual void action() = 0;
+    virtual void action() {}
 
-    void set_non_terminal(AstNonTerminal* node) {
+    void set_non_terminal(string* node) {
         nt = node;
     }
 
-    void set_sequence(AstSequence* node) {
-        seq = node;
-    }
-
-private:
-    AstNonTerminal* nt;
-    AstSequence* seq;
-};
-
-class AstNonTerminal: public AstNode {
-
-public:
-    AstNonTerminal(ParserState* ps): AstNode(ps, AstNode::AST_NON_TERMINAL) {}
-
-    virtual void traverse() override {
-        TRACE(format("non-terminal symbol: {}", symbol->get_text()));
-    }
-
-    virtual void action() = 0;
-
-    void set_symbol(Token* tok) {
-        symbol = tok;
-    }
-
-private:
-    Token* symbol;
-};
-
-class AstSequence: public AstNode {
-
-public:
-    AstSequence(ParserState* ps): AstNode(ps, AstNode::AST_SEQUENCE) {}
-
-    virtual void traverse() override {
-        for(auto node: items)
-            node->traverse();
-    }
-
-    virtual void action() = 0;
-
-    void add_item(AstNode* node) {
-        items.push_back(node);
-    }
-
-private:
-    vector<AstNode*> items;
-};
-
-class AstTerminal: public AstNode {
-
-public:
-    AstTerminal(ParserState* ps): AstNode(ps, AstNode::AST_TERMINAL) {}
-
-    virtual void traverse() override {
-        TRACE(format("terminal symbol: {}", symbol->get_text()));
-    }
-
-    virtual void action() = 0;
-
-    void set_symbol(Token* tok) {
-        symbol = tok;
-    }
-
-private:
-    Token* symbol;
-};
-
-class AstExpression: public AstNode {
-
-public:
-    AstExpression(ParserState* ps): AstNode(ps, AstNode::AST_EXPRESSION) {}
-
-    virtual void traverse() override {
-        ((AstNode*)expr)->traverse();
-    }
-
-    virtual void action() = 0;
-
-    void set_expr(AstExpression* node) {
+    void set_expr(AstGrouping* node) {
         expr = node;
     }
 
 private:
-    AstExpression* expr;
+    string* nt;
+    AstGrouping* expr;
+};
+
+class AstPrimary: public AstNode {
+
+public:
+    AstPrimary(Token* tok): AstNode(tok, AstNode::AST_PRIMARY) {}
+
+    virtual void traverse() override {
+        ENTER;
+        TRACE(format("this: {}: {}", (void*)this, type_to_str(node)));
+        if(non_terminal)
+            TRACE(format("non-terminal symbol: {}", *non_terminal));
+        else if(terminal)
+            TRACE(format("terminal symbol: {}", *terminal));
+        else if(node)
+            node->traverse();
+        RETURN();
+    }
+
+    virtual void action() {}
+
+    void set_terminal(string* str) {
+        terminal = str;
+        non_terminal = nullptr;
+        node = nullptr;
+    }
+
+    void set_non_terminal(string* str) {
+        non_terminal = str;
+        terminal = nullptr;
+        node = nullptr;
+    }
+
+    void set_node(AstNode* val) {
+        node = val;
+        terminal = nullptr;
+        non_terminal = nullptr;
+    }
+
+private:
+    string* terminal;
+    string* non_terminal;
+    AstNode* node;
+};
+
+class AstGrouping: public AstNode {
+
+public:
+    AstGrouping(Token* tok): AstNode(tok, AstNode::AST_GROUPING) {}
+
+    virtual void traverse() override {
+        ENTER;
+        for(auto node: list) {
+            node->traverse();
+        }
+        RETURN();
+    }
+
+    virtual void action() {}
+
+    void set_list(vector<AstPrimary*> lst) {
+        list.assign(lst.begin(), lst.end());
+    }
+
+    void add_node(AstPrimary* node) {
+        list.push_back(node);
+    }
+
+private:
+    vector<AstPrimary*> list;
 };
 
 class AstSelect: public AstNode {
 
 public:
-    AstSelect(ParserState* ps): AstNode(ps, AstNode::AST_SELECT) {}
+    AstSelect(Token* tok): AstNode(tok, AstNode::AST_SELECT) {}
 
     virtual void traverse() override {
-        for(auto node: items) {
-            node->traverse();
-        }
+        ((AstNode*)item)->traverse();
     }
 
-    virtual void action() = 0;
+    virtual void action() {}
 
-    void add_item(AstNode* node) {
-        items.push_back(node);
+    void set_item(AstPrimary* node) {
+        item = node;
     }
 
 private:
-    vector<AstNode*> items;
+    AstPrimary* item;
 };
 
 class AstZeroOrOne: public AstNode {
 
 public:
-    AstZeroOrOne(ParserState* ps): AstNode(ps, AstNode::AST_ZERO_OR_ONE) {}
+    AstZeroOrOne(Token* tok): AstNode(tok, AstNode::AST_ZERO_OR_ONE) {}
 
     virtual void traverse() override {
-        for(auto node: items) {
-            node->traverse();
-        }
+        ((AstNode*)item)->traverse();
     }
 
-    virtual void action() = 0;
+    virtual void action() {}
 
-    void add_item(AstNode* node) {
-        items.push_back(node);
+    void set_item(AstPrimary* node) {
+        item = node;
     }
 
 private:
-    vector<AstNode*> items;
+    AstPrimary* item;
 };
 
 class AstZeroOrMore: public AstNode {
 
 public:
-    AstZeroOrMore(ParserState* ps): AstNode(ps, AstNode::AST_ZERO_OR_MORE) {}
+    AstZeroOrMore(Token* tok): AstNode(tok, AstNode::AST_ZERO_OR_MORE) {}
 
     virtual void traverse() override {
-        for(auto node: items) {
-            node->traverse();
-        }
+        ((AstNode*)item)->traverse();
     }
 
-    virtual void action() = 0;
+    virtual void action() {}
 
-    void add_item(AstNode* node) {
-        items.push_back(node);
+    void set_item(AstPrimary* node) {
+        item = node;
     }
 
 private:
-    vector<AstNode*> items;
+    AstPrimary* item;
 };
 
 class AstOneOrMore: public AstNode {
 
 public:
-    AstOneOrMore(ParserState* ps): AstNode(ps, AstNode::AST_ONE_OR_MORE) {}
+    AstOneOrMore(Token* tok): AstNode(tok, AstNode::AST_ONE_OR_MORE) {}
 
     virtual void traverse() override {
-        for(auto node: items) {
-            node->traverse();
-        }
+        ((AstNode*)item)->traverse();
     }
 
-    virtual void action() = 0;
+    virtual void action() {}
 
-    void add_item(AstNode* node) {
-        items.push_back(node);
+    void set_item(AstPrimary* node) {
+        item = node;
     }
 
 private:
-    vector<AstNode*> items;
+    AstPrimary* item;
 };
 
 class AstNot: public AstNode {
 
 public:
-    AstNot(ParserState* ps): AstNode(ps, AstNode::AST_NOT) {}
+    AstNot(Token* tok): AstNode(tok, AstNode::AST_NOT) {}
 
     virtual void traverse() override {
-        node->traverse();
+        ((AstNode*)item)->traverse();
     }
 
-    virtual void action() = 0;
+    virtual void action() {}
 
-    void set_node(AstNot* no) {
-        node = no;
+    void set_item(AstPrimary* node) {
+        item = node;
     }
 
 private:
-    AstNode* node;
+    AstPrimary* item;
 };
 

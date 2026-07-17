@@ -9,12 +9,9 @@ using namespace std;
 
 typedef enum {
     TOK_END_OF_FILE,
-    TOK_DSTR,
-    TOK_SSTR,
+    TOK_QSTR,
     TOK_OPAREN,
     TOK_CPAREN,
-    TOK_OCURLY,
-    TOK_CCURLY,
     TOK_STAR,
     TOK_PIPE,
     TOK_QUESTION,
@@ -29,7 +26,7 @@ class Token {
 public:
     Token(File*);
     ~Token() {
-        cout << "discard token: " << text << endl;
+        TRACE(format("discard token: {}", text));
     }
 
     string& get_text() {
@@ -43,17 +40,16 @@ public:
     const char* type_to_str();
 
     friend ostream& operator<<(ostream& os, Token* tok) {
-        string fmt = format("{:>4}: {:>4}: ", tok->line, tok->col);
+        string fmt = format("{:>4}: {:>4}: ", tok->file->line_no, tok->file->col_no);
         os << fmt << "str: \"" << tok->get_text() << "\" type: " << tok->type_to_str();
         return os;
     }
 
+    File* file;
+
 private:
     string text;
     token_type_t type;
-    File* file;
-    int line;
-    int col;
 
     void consume_multi_line_comment();
     void consume_single_line_comment();

@@ -6,11 +6,16 @@
 #include <iostream>
 #include <format>
 
+#include "ast.h"
+#include "parser.h"
 #include "scanner.h"
 #include "cmdline.h"
 
 #include "logger.h"
-Logger logger(Logger::DEBUG);
+Logger logger = Logger(Logger::WARNING);
+
+#include "errors.h"
+Errors errors = Errors();
 
 CmdLine* cmdline(int argc, char** argv, char** env) {
 
@@ -55,87 +60,16 @@ CmdLine* cmdline(int argc, char** argv, char** env) {
 
 int main(int argc, char** argv, char** env) {
 
-    ENTER;
     CmdLine* cmd = cmdline(argc, argv, env);
-    string* file = cmd->get_string_opt("files");
-    string filename = cmd->find_file(*file);
 
+    ENTER; // after verbosity is init
+    string filename = cmd->find_file(*cmd->get_string_opt("files"));
+    ParserState* state = new ParserState(new Scanner(filename));
 
-    //Scanner scn{"../tests/pgen-grammar.txt"};
-    Scanner scn{filename};
-    int line = 1;
-    //Token* tok = scn.token();
+    AstGrammar* root = ParseGrammar(state);
 
-    cout << "read 5 tokens" << endl;
-    for(int i = 0; i < 5; i++) {
-        // string fmt = format("{:>4}:{:>4}:{:>4}: ", line, scn.file()->get_line_no(), scn.file()->get_col_no());
-        // cout << fmt << scn.token() << endl;
-        // tok = scn.advance();
-        // line++;
-        cout << scn.token() << endl;
-        scn.advance();
-    }
-
-    int mark = scn.mark_queue();
-    cout << "mark the queue: " << mark << endl;
-    cout << "read 5 more tokens" << endl;
-    for(int i = 0; i < 5; i++) {
-        // string fmt = format("{:>4}:{:>4}:{:>4}: ", line, scn.file()->get_line_no(), scn.file()->get_col_no());
-        // cout << fmt << scn.token() << endl;
-        // tok = scn.advance();
-        // line++;
-        cout << scn.token() << endl;
-        scn.advance();
-    }
-    cout << "reset the queue" << endl;
-    scn.reset_queue(mark);
-    cout << "read 10 more tokens" << endl;
-    for(int i = 0; i < 10; i++) {
-        // string fmt = format("{:>4}:{:>4}:{:>4}: ", line, scn.file()->get_line_no(), scn.file()->get_col_no());
-        // cout << fmt << scn.token() << endl;
-        // tok = scn.advance();
-        // line++;
-        cout << scn.token() << endl;
-        scn.advance();
-    }
-
-    cout << "flush the queue" << endl;
-    scn.flush_queue(mark);
-    cout << "read 5 more tokens" << endl;
-    for(int i = 0; i < 5; i++) {
-        // string fmt = format("{:>4}:{:>4}:{:>4}: ", line, scn.file()->get_line_no(), scn.file()->get_col_no());
-        // cout << fmt << scn.token() << endl;
-        // tok = scn.advance();
-        // line++;
-        cout << scn.token() << endl;
-        scn.advance();
-    }
-
-    RETURN(0);
-
-    while(scn.token()->get_type() != TOK_END_OF_FILE) {
-        string fmt = format("{:>4}:{:>4}:{:>4}: ", line, scn.file()->get_line_no(), scn.file()->get_col_no());
-        cout << fmt << scn.token() << endl;
-        // tok = scn.advance();
-        line++;
-        scn.advance();
-    }
-
-
-    // cmdline(argc, argv, env);
-
-    // const char* fname = raw_string(get_cmd_opt("files"));
-    // if(fname != NULL) {
-    //     yyin = fopen(fname, "r");
-    //     if(yyin == NULL) {
-    //         fprintf(stderr, "cannot open input file \"%s\": %s\n", fname, strerror(errno));
-    //         cmdline_help();
-    //     }
-    // }
-    // else
-    //     FATAL("internal error in %s: command line failed", __func__);
-
-    // printf("Hello Template: %s\n", argv[1]);
+    if(root != nullptr && errors.get_errors() == 0)
+        root->traverse();
 
     RETURN(0);
 }

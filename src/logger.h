@@ -104,6 +104,8 @@ private:
 
 };
 
+#ifdef USE_TRACE
+
 #define ENTER do { \
     if(logger.get_level() <= Logger::DEBUG) { \
         logger.pad(); \
@@ -128,3 +130,22 @@ private:
     } \
 } while(false)
 
+#define START(m) do { \
+    if(logger.get_level() <= Logger::DEBUG) { \
+        print(stdout, "{:-^75}\n", m); \
+    } \
+} while(false)
+
+#define END(m) do { \
+    if(logger.get_level() <= Logger::DEBUG) { \
+        print(stdout, "{:-^75}\n", m); \
+    } \
+} while(false)
+
+#else
+
+#define ENTER
+#define RETURN(...) return __VAR_ARGS__
+#define TRACE(m)
+
+#endif

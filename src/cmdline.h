@@ -6,9 +6,6 @@
 #include <cstdint>
 #include <filesystem>
 
-#include "logger.h"
-extern Logger logger;
-
 using namespace std;
 
 typedef enum cmdline_flag_t {

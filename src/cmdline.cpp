@@ -5,6 +5,12 @@
 #include <algorithm>
 #include "cmdline.h"
 
+#include "logger.h"
+extern Logger logger;
+#include "errors.h"
+extern Errors errors;
+
+
 using namespace std;
 
 void CmdLine::show_help() {

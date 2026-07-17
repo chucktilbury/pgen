@@ -4,8 +4,16 @@
 #include <cerrno>
 #include "fileio.h"
 
+#include "logger.h"
+extern Logger logger;
+#include "errors.h"
+extern Errors errors;
+
+
 File::File(const string& fname): fname(fname) {
 
+    ENTER;
+    TRACE(format("Opening file: {}", fname));
     file = fstream(fname, fstream::in);
     if(!file.is_open()) {
         cerr << "Error: Cannot open input file: \"" << fname <<"\": " << strerror(errno) << endl;
@@ -16,13 +24,17 @@ File::File(const string& fname): fname(fname) {
     line_no = 1;
     col_no = 1;
     consume_char();
+    RETURN();
 }
 
 File::~File() {
 
+    ENTER;
+    TRACE(format("Closing file: {}", fname));
     //cerr << "closing the file\n";
     if(file.is_open())
         file.close();
+    RETURN();
 }
 
 int File::consume_char() {

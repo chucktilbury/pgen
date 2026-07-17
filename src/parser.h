@@ -1,19 +1,28 @@
 
+#pragma once
+
 #include <iostream>
 #include "scanner.h"
-
-#include "logger.h"
-extern Logger logger;
+#include "ast.h"
 
 class ParserState {
 
 public:
     ParserState(Scanner* scn) : scanner(scn) {}
-    int get_line_no() { return scanner->file()->get_line_no(); }
-    int get_col_no() { return scanner->file()->get_col_no(); }
-    const string& get_file_name() { return scanner->file()->get_file_name(); }
+    int get_line_no() { return scanner->file()->line_no; }
+    int get_col_no() { return scanner->file()->col_no; }
+    const string& get_file_name() { return scanner->file()->fname; }
 
-private:
     Scanner* scanner;
 };
+
+AstGrammar* ParseGrammar(ParserState* state);
+AstRule* ParseRule(ParserState* state);
+AstPrimary* ParsePrimary(ParserState* state);
+AstSelect* ParseSelect(ParserState* state);
+AstGrouping* ParseGroup(ParserState* state);
+AstZeroOrOne* ParseZeroOrOne(ParserState* state);
+AstZeroOrMore* ParseZeroOrMore(ParserState* state);
+AstOneOrMore* ParseOneOrMore(ParserState* state);
+AstNot* ParseNot(ParserState* state);
 

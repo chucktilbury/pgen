@@ -4,73 +4,114 @@
 #include <iostream>
 #include "scanner.h"
 
+#include "logger.h"
+extern Logger logger;
+#include "errors.h"
+extern Errors errors;
+
 Scanner::Scanner(const string& fname) {
 
-    File* fp = new File(fname);
-    file_queue.push_back(fp);
-    Token* tok = new Token(file());
-    token_queue.push_back(tok);
+    ENTER;
+    //File* fp = new File(fname);
+    // file_queue.push_back(fp);
+    open_file(fname);
+
+    // Token* tok = new Token(file());
+    // slurp the whole file
+    int count = 0;
+    //Token* tok = new Token(file());
+    //while(tok->get_type() != TOK_END_OF_FILE) {
+
+    Token* tok;
+    do {
+        tok = new Token(file());
+        token_queue.push_back(tok);
+        count++;
+    } while(tok->get_type() != TOK_END_OF_FILE);
+
+    TRACE(format("read {} tokens", count));
+
+    //close_file();
     crnt_index = 0;
+
+    RETURN();
 }
 
 File* Scanner::open_file(const string& fname) {
 
+    ENTER;
     File* fp = new File(fname);
     file_queue.push_back(fp);
-    return fp;
+    RETURN(fp);
 }
 
 void Scanner::close_file() {
 
-    cerr << "scanner closing file\n";
+    ENTER;
+    delete file_queue.back();
     file_queue.pop_back();
+    RETURN();
 }
-
-// Token* Scanner::token() {
-
-//     return crnt_token();
-// }
 
 Token* Scanner::advance() {
 
-    if(crnt_index+1 >= token_queue.size()) {
-        Token* tok = new Token(file());
-        token_queue.push_back(tok);
-        crnt_index = end_index();
-    }
-    else
+    ENTER;
+    TRACE(format("old token: {} ({})", token()->get_text(), token()->type_to_str()));
+    // if(crnt_index+1 >= token_queue.size()) {
+    //     Token* tok = new Token(file());
+    //     token_queue.push_back(tok);
+    //     crnt_index = end_index();
+    // }
+    // else
+    //     crnt_index++;
+    if(token()->get_type() != TOK_END_OF_FILE)
         crnt_index++;
 
-    return token();
+    TRACE(format("new token: {} ({})", token()->get_text(), token()->type_to_str()));
+    RETURN(token());
 }
 
-int Scanner::mark_queue() {
+void Scanner::mark_queue() {
 
-    cout << "mark current token: " << token() << endl;
-    return crnt_index;
+    ENTER;
+    TRACE(format("mark current token: {} ({})", token()->get_text(), crnt_index));
+    tracker.push_back(crnt_index);
+    RETURN();
 }
 
-void Scanner::reset_queue(size_t mark) {
+void Scanner::reset_queue() {
 
-    cout << "reset queue: mark: " << token_queue[mark] << endl;
-    crnt_index = mark;
+    ENTER;
+    crnt_index = tracker.back();
+    TRACE(format("reset queue: index: {} ({})", token()->get_text(), crnt_index));
+    tracker.pop_back();
+    RETURN();
+}
+
+void Scanner::flush_queue() {
+    ENTER;
+    tracker.pop_back();
+    RETURN();
 }
 
 // discard matched tokens
-void Scanner::flush_queue(size_t mark) {
+// void Scanner::flush_queue() {
 
-    //cout << "flush queue: size: " << token_queue.size() << endl;
-    while(token_queue.size() > mark) {
-        delete token_queue[token_queue.size()-1];
-        token_queue.pop_back();
-    }
-    //cout << "new queue size: " << token_queue.size() << endl;
+//     ENTER;
+//     if(mark > 0) {
+//         while(token_queue.size() > mark) {
+//             delete token_queue[token_queue.back()];
+//             token_queue.pop_back();
+//         }
 
-    crnt_index = token_queue.size()-1;
-}
+//         crnt_index = token_queue.back();
+//         advance();
+//     }
+//     RETURN();
+// }
 
 File* Scanner::file() {
-    return (File*)file_queue[file_queue.size()-1];
+    return file_queue.back();
 }
 
 Token* Scanner::token() {
