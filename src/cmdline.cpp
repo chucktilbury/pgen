@@ -483,7 +483,7 @@ void CmdLine::add_path(vector<string> name_lst) {
         catch(filesystem::filesystem_error const& ex) {
             stringstream tmp;
             tmp << ex.path1();
-            logger.warning(format("path entry \"{}\" does not exist", tmp.str()));
+            //logger.warning(format("path entry \"{}\" does not exist", tmp.str()));
         }
     }
     RETURN();
@@ -503,7 +503,7 @@ void CmdLine::add_path(vector<string*> name_lst) {
         catch(filesystem::filesystem_error const& ex) {
             stringstream tmp;
             tmp << ex.path1();
-            logger.warning(format("path entry \"{}\" does not exist", tmp.str()));
+            //logger.warning(format("path entry \"{}\" does not exist", tmp.str()));
         }
     }
     logger.pop_level();

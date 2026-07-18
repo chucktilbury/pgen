@@ -17,15 +17,25 @@ class Logger {
 
     public:
     enum {
+        // SILENT = 0,
+        // DEBUG = 10,
+        // ENTER = 11,
+        // RETURN = 12,
+        // TRACE = 13,
+        // INFO = 20,
+        // WARNING = 30,
+        // ERROR = 40,
+        // FATAL = 50,
+        // ALL = 500,
         SILENT = 0,
-        DEBUG = 10,
-        ENTER = 11,
-        RETURN = 12,
-        TRACE = 13,
-        INFO = 20,
+        DEBUG = 53,
+        ENTER = 52,
+        RETURN = 51,
+        TRACE = 50,
+        INFO = 40,
         WARNING = 30,
-        ERROR = 40,
-        FATAL = 50,
+        ERROR = 20,
+        FATAL = 10,
         ALL = 500,
     };
 
@@ -34,21 +44,21 @@ class Logger {
     }
 
     void info(const string& msg) {
-        if(peek_level() <= INFO) {
+        if(peek_level() >= INFO) {
             pad();
             print(stdout, "INFO: {}\n", msg);
         }
     }
 
     void warning(const string& msg) {
-        if(peek_level() <= WARNING) {
+        if(peek_level() >= WARNING) {
             print(stderr, "warning: {}\n", msg);
             warnings++;
         }
     }
 
     void error(const string& msg) {
-        if(peek_level() <= ERROR) {
+        if(peek_level() >= ERROR) {
             print(stderr, "error: {}\n", msg);
             errors++;
         }
@@ -114,7 +124,7 @@ class Logger {
 
 #define ENTER                                                  \
     do {                                                       \
-        if(logger.get_level() <= Logger::DEBUG) {              \
+        if(logger.get_level() >= Logger::DEBUG) {              \
             logger.pad();                                      \
             print(stdout, "ENTER: {}\n", __PRETTY_FUNCTION__); \
             logger.inc_depth();                                \
@@ -123,7 +133,7 @@ class Logger {
 
 #define RETURN(...)                                                              \
     do {                                                                         \
-        if(logger.get_level() <= Logger::DEBUG) {                                \
+        if(logger.get_level() >= Logger::DEBUG) {                                \
             logger.dec_depth();                                                  \
             logger.pad();                                                        \
             print(stdout, "RETURN({}) {}\n", #__VA_ARGS__, __PRETTY_FUNCTION__); \
@@ -133,7 +143,7 @@ class Logger {
 
 #define TRACE(m)                                                      \
     do {                                                              \
-        if(logger.get_level() <= Logger::DEBUG) {                     \
+        if(logger.get_level() >= Logger::DEBUG) {                     \
             logger.pad();                                             \
             print(stdout, "TRACE: {}: {}\n", __PRETTY_FUNCTION__, m); \
         }                                                             \
@@ -141,14 +151,14 @@ class Logger {
 
 #define START(m)                                  \
     do {                                          \
-        if(logger.get_level() <= Logger::DEBUG) { \
+        if(logger.get_level() >= Logger::DEBUG) { \
             print(stdout, "{:-^75}\n", m);        \
         }                                         \
     } while(false)
 
 #define END(m)                                    \
     do {                                          \
-        if(logger.get_level() <= Logger::DEBUG) { \
+        if(logger.get_level() >= Logger::DEBUG) { \
             print(stdout, "{:-^75}\n", m);        \
         }                                         \
     } while(false)

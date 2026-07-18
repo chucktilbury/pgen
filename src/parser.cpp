@@ -43,21 +43,93 @@ string* Parser::_convert_str(string& str) {
                 return new string("TOK_STAR");
             case '+':
                 return new string("TOK_PLUS");
+            case '/':
+                return new string("TOK_SLASH");
+            case '-':
+                return new string("TOK_MINUS");
+            case '%':
+                return new string("TOK_PERCENT");
             case '|':
                 return new string("TOK_PIPE");
+            case '{':
+                return new string("TOK_OCURLY");
+            case '}':
+                return new string("TOK_CCURLY");
+            case '.':
+                return new string("TOK_DOT");
+            case ',':
+                return new string("TOK_COMMA");
+            case '&':
+                return new string("TOK_AMPERSAND");
+            case '^':
+                return new string("TOK_CARAT");
+            case '[':
+                return new string("TOK_OSQUARE");
+            case ']':
+                return new string("TOK_CSQUARE");
+            case '<':
+                if(str.size() > 1) {
+                    if(str[1] == '=')
+                        return new string("TOK_LTE");
+                    else {
+                        _error(TOKEN, format("unknown operator: {}", str));
+                        return nullptr;
+                    }
+                }
+                else
+                    return new string("TOK_LT");
+            case '>':
+                if(str.size() > 1) {
+                    if(str[1] == '=')
+                        return new string("TOK_GTE");
+                    else {
+                        _error(TOKEN, format("unknown operator: {}", str));
+                        return nullptr;
+                    }
+                }
+                else
+                    return new string("TOK_GT");
+            case '!':
+                if(str.size() > 1) {
+                    if(str[1] == '=')
+                        return new string("TOK_NEQU");
+                    else {
+                        _error(TOKEN, format("unknown operator: {}", str));
+                        return nullptr;
+                    }
+                }
+                else
+                    return new string("TOK_BANG");
+            case '=':
+                if(str.size() > 1) {
+                    if(str[1] == '=')
+                        return new string("TOK_ISEQU");
+                    else {
+                        _error(TOKEN, format("unknown operator: {}", str));
+                        return nullptr;
+                    }
+                }
+                else
+                    return new string("TOK_ASSIGN");
             default:
-                _error(TOKEN, format("unknown punctuation token: {:c}", str[0]));
+                _error(TOKEN, format("unknown punctuation token: {}", str));
                 return nullptr;
         }
     }
-    else
-        return new string("TOK_" + str);
+    else {
+        string tmp = string(str);
+        for(auto & c: tmp) { c = toupper(c); }
+        return new string("TOK_" + tmp);
+
+    }
 }
 
 _ast_node* Parser::parse() {
     ENTER;
+    logger.push_level(Logger::WARNING);
     _ast_node* node = (_ast_node*)_parse_grammar();
-    RETURN(node);
+    logger.pop_level();
+   RETURN(node);
 }
 
 _ast_grammar* Parser::_parse_grammar() {
