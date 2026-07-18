@@ -7,7 +7,7 @@ using namespace std;
 
 class File {
 
-public:
+    public:
     File(const string& name);
     ~File();
     int consume_char();
@@ -31,8 +31,7 @@ public:
     int line_no;
     int col_no;
 
-private:
+    private:
     fstream file;
     int crnt_char;
 };
-

@@ -12,15 +12,15 @@ extern Errors errors;
 Scanner::Scanner(const string& fname) {
 
     ENTER;
-    //File* fp = new File(fname);
-    // file_queue.push_back(fp);
+    // File* fp = new File(fname);
+    //  file_queue.push_back(fp);
     open_file(fname);
 
     // Token* tok = new Token(file());
     // slurp the whole file
     int count = 0;
-    //Token* tok = new Token(file());
-    //while(tok->get_type() != TOK_END_OF_FILE) {
+    // Token* tok = new Token(file());
+    // while(tok->get_type() != TOK_END_OF_FILE) {
 
     Token* tok;
     do {
@@ -31,7 +31,7 @@ Scanner::Scanner(const string& fname) {
 
     TRACE(format("read {} tokens", count));
 
-    //close_file();
+    // close_file();
     crnt_index = 0;
 
     RETURN();

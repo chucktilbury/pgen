@@ -24,8 +24,8 @@ typedef enum cmdline_flag_t {
     CMD_SWITCH = 0x40, // a switch with no command option
 
     // arg attributes
-    CMD_REQD = 0x80, // item is required
-    CMD_DIV = 0x100, // item is a divider for the help screen
+    CMD_REQD = 0x80,  // item is required
+    CMD_DIV = 0x100,  // item is a divider for the help screen
     CMD_HELP = 0x200, // show help and exit
     CMD_VERS = 0x400, // show version and exit
 
@@ -35,28 +35,41 @@ typedef enum cmdline_flag_t {
 
 class CmdLineOpt {
 
-public:
-    CmdLineOpt() :
-                short_opt(nullptr), long_opt(nullptr),
-                name(nullptr), help(nullptr), def_val(nullptr),
-                flags(0) {};
-// TODO: Try to use non-pointers for string values
+    public:
+    CmdLineOpt()
+    : short_opt(nullptr), long_opt(nullptr),
+      name(nullptr), help(nullptr), def_val(nullptr),
+      flags(0) {};
+    // TODO: Try to use non-pointers for string values
     CmdLineOpt(string* short_opt,
-                string* long_opt,
-                string* name,
-                string* help,
-                string* def_val,
-                uint16_t flags) :
-                short_opt(short_opt), long_opt(long_opt),
-                name(name), help(help), def_val(def_val),
-                flags(flags) {}
+               string* long_opt,
+               string* name,
+               string* help,
+               string* def_val,
+               uint16_t flags)
+    : short_opt(short_opt), long_opt(long_opt),
+      name(name), help(help), def_val(def_val),
+      flags(flags) {
+    }
 
-    string* get_short_opt() { return short_opt; }
-    string* get_long_opt() { return long_opt; }
-    string* get_name() { return name; }
-    string* get_help() { return help; }
-    string* get_def_val() { return def_val; }
-    uint16_t get_flags() { return flags; }
+    string* get_short_opt() {
+        return short_opt;
+    }
+    string* get_long_opt() {
+        return long_opt;
+    }
+    string* get_name() {
+        return name;
+    }
+    string* get_help() {
+        return help;
+    }
+    string* get_def_val() {
+        return def_val;
+    }
+    uint16_t get_flags() {
+        return flags;
+    }
 
     void set_name(string* s) {
         name = s;
@@ -85,20 +98,19 @@ public:
 
 class CmdLine {
 
-public:
-
-    CmdLine(const char* name, const char* pre, const char* vers, char* pname) :
-            preamble(new string(pre)), version(new string(vers)),
-            name(new string(name)), pname(new string(pname)) {
+    public:
+    CmdLine(const char* name, const char* pre, const char* vers, char* pname)
+    : preamble(new string(pre)), version(new string(vers)),
+      name(new string(name)), pname(new string(pname)) {
     }
 
     // add command option. interface to the option class
     void add(int short_opt,
-                const char* long_opt,
-                const char* name,
-                const char* help,
-                const char* def_val,
-                uint16_t type);
+             const char* long_opt,
+             const char* name,
+             const char* help,
+             const char* def_val,
+             uint16_t type);
 
     // parse the command line input
     void parse(int argc, char** argv, char** env);
@@ -131,7 +143,7 @@ public:
     void show_help();
     void dump_opts();
 
-private:
+    private:
     string* preamble;
     string* version;
     string* name;
@@ -142,8 +154,12 @@ private:
     vector<string> search_path;
     int files;
 
-    void show_version() { cout << "version: " << *version << endl; }
-    void show_preamble() { cout << *name << ": " << *preamble << endl; }
+    void show_version() {
+        cout << "version: " << *version << endl;
+    }
+    void show_preamble() {
+        cout << *name << ": " << *preamble << endl;
+    }
     vector<string> split_string(string s, string limiters);
     void store_environment(char** env);
     string get_token();
@@ -152,8 +168,5 @@ private:
     void parse_short_option();
     CmdLineOpt* find_option(const string& name);
 
-    //void dump_opts();
-
+    // void dump_opts();
 };
-
-

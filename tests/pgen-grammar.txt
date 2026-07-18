@@ -5,23 +5,22 @@
 
 grammar ( + rule )
 
-rule ( NON_TERMINAL grouping_expr )
+rule ( NON_TERMINAL group_expr )
 
 primary_expr (
     QSTRG | // creates a TERMINAL symbol
     TERMINAL |
     NON_TERMINAL |
-    grouping_expr |
+    group_expr |
     zero_or_one_expr |
     zero_or_more_expr |
     one_or_more_expr |
-    not_expr |
     select_expr
 )
 
-grouping_expr ( '(' + primary_expr ')' )
+group_expr ( '(' + primary_expr ')' )
 
-select_expr ( primary_expr '|' primary_expr )
+select_expr ( '|' primary_expr )
 
 zero_or_one_expr ( '?' primary_expr )
 
@@ -29,5 +28,4 @@ one_or_more_expr ( '+' primary_expr )
 
 zero_or_more_expr ( '*' primary_expr )
 
-not_expr ( '!' primary_expr )
 

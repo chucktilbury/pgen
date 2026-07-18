@@ -7,23 +7,111 @@ using namespace std;
 class ast {
 
 public:
-    void set_vec(vector<int> vec) { list.assign(vec.begin(), vec.end()); }
-    void show_vec() {
-        for(auto x: list)
-            cout << "value: " << x << endl;
+    virtual void traverse() = 0;
+
+};
+
+class ast_one: public ast {
+
+public:
+    virtual void traverse() override {
+        cout << __PRETTY_FUNCTION__ << endl;
+        for(auto x: list) {
+            x->traverse();
+        }
+    }
+
+    void set_vec(vector<ast*> vec) {
+        list.assign(vec.begin(), vec.end());
     }
 
 private:
-    vector<int> list;
+    vector<ast*> list;
 };
+
+class ast_two: public ast {
+
+public:
+    ast_two(int val): value(val) {}
+
+    virtual void traverse() override {
+        cout << __PRETTY_FUNCTION__ << ": value: " << value << endl;
+    }
+
+    void set_val(int val) {
+        value = val;
+    }
+
+private:
+    int value;
+};
+
+class ast_three: public ast {
+
+public:
+    ast_three(int val): value(val) {}
+
+    virtual void traverse() override {
+        cout << __PRETTY_FUNCTION__ << ": value: " << value << endl;
+    }
+
+    void set_val(int val) {
+        value = val;
+    }
+
+private:
+    int value;
+};
+
+class ast_four: public ast {
+
+public:
+    ast_four(int val): value(val) {}
+
+    virtual void traverse() override {
+        cout << __PRETTY_FUNCTION__ << ": value: " << value << endl;
+    }
+
+    void set_val(int val) {
+        value = val;
+    }
+
+private:
+    int value;
+};
+
+class ast_five: public ast {
+
+public:
+    ast_five(int val): value(val) {}
+
+    // virtual void traverse() override {
+    //     cout << __PRETTY_FUNCTION__ << ": value: " << value << endl;
+    // }
+
+    void set_val(int val) {
+        value = val;
+    }
+
+private:
+    int value;
+};
+
 
 class parser {
 
 public:
     ast* make_ast() {
-        vector<int> lst = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-        ast* a = new ast();
+        vector<ast*> lst;
+        ast_one* a = new ast_one();
+        ast* x = new ast_two(10);
+        lst.push_back(x);
+        x = new ast_three(20);
+        lst.push_back(x);
+        x = new ast_four(30);
+        lst.push_back(x);
         a->set_vec(lst);
+        // x = new ast_five(100);
         return a;
     }
 };
@@ -32,7 +120,7 @@ int main() {
 
     parser* par = new parser();
     ast* a = par->make_ast();
-    a->show_vec();
+    a->traverse();
 
     return 0;
 }

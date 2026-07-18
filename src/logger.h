@@ -15,7 +15,7 @@ using namespace std;
 
 class Logger {
 
-public:
+    public:
     enum {
         SILENT = 0,
         DEBUG = 10,
@@ -27,7 +27,7 @@ public:
         ERROR = 40,
         FATAL = 50,
         ALL = 500,
-    } ;
+    };
 
     Logger(int level) {
         push_level(level);
@@ -61,7 +61,7 @@ public:
     }
 
     void set_level(int lev) {
-        //print(stderr, "set level: {}\n", lev);
+        // print(stderr, "set level: {}\n", lev);
         push_level(lev);
     }
 
@@ -89,58 +89,69 @@ public:
         return peek_level();
     }
 
-    void inc_depth() { depth += dinc; }
-    void dec_depth() { depth -= dinc; }
-    void pad() { for(int i = 0; i < depth; i++) cout << ' '; }
+    void inc_depth() {
+        depth += dinc;
+    }
+    void dec_depth() {
+        depth -= dinc;
+    }
+    void pad() {
+        for(int i = 0; i < depth; i++)
+            cout << ' ';
+    }
 
 
-private:
-    //int log_level;
+    private:
+    // int log_level;
     int errors;
     int warnings;
     int depth;
     const int dinc = 2;
     vector<int> lev_stack;
-
 };
 
 #ifdef USE_TRACE
 
-#define ENTER do { \
-    if(logger.get_level() <= Logger::DEBUG) { \
-        logger.pad(); \
-        print(stdout, "ENTER: {}\n", __PRETTY_FUNCTION__); \
-        logger.inc_depth(); \
-    } \
-} while(false)
+#define ENTER                                                  \
+    do {                                                       \
+        if(logger.get_level() <= Logger::DEBUG) {              \
+            logger.pad();                                      \
+            print(stdout, "ENTER: {}\n", __PRETTY_FUNCTION__); \
+            logger.inc_depth();                                \
+        }                                                      \
+    } while(false)
 
-#define RETURN(...) do { \
-    if(logger.get_level() <= Logger::DEBUG) { \
-        logger.dec_depth(); \
-        logger.pad(); \
-        print(stdout, "RETURN({}) {}\n", #__VA_ARGS__, __PRETTY_FUNCTION__); \
-    } \
-    return __VA_ARGS__; \
-} while(false);
+#define RETURN(...)                                                              \
+    do {                                                                         \
+        if(logger.get_level() <= Logger::DEBUG) {                                \
+            logger.dec_depth();                                                  \
+            logger.pad();                                                        \
+            print(stdout, "RETURN({}) {}\n", #__VA_ARGS__, __PRETTY_FUNCTION__); \
+        }                                                                        \
+        return __VA_ARGS__;                                                      \
+    } while(false);
 
-#define TRACE(m) do { \
-    if(logger.get_level() <= Logger::DEBUG) { \
-        logger.pad(); \
-        print(stdout, "TRACE: {}\n", m); \
-    } \
-} while(false)
+#define TRACE(m)                                                      \
+    do {                                                              \
+        if(logger.get_level() <= Logger::DEBUG) {                     \
+            logger.pad();                                             \
+            print(stdout, "TRACE: {}: {}\n", __PRETTY_FUNCTION__, m); \
+        }                                                             \
+    } while(false)
 
-#define START(m) do { \
-    if(logger.get_level() <= Logger::DEBUG) { \
-        print(stdout, "{:-^75}\n", m); \
-    } \
-} while(false)
+#define START(m)                                  \
+    do {                                          \
+        if(logger.get_level() <= Logger::DEBUG) { \
+            print(stdout, "{:-^75}\n", m);        \
+        }                                         \
+    } while(false)
 
-#define END(m) do { \
-    if(logger.get_level() <= Logger::DEBUG) { \
-        print(stdout, "{:-^75}\n", m); \
-    } \
-} while(false)
+#define END(m)                                    \
+    do {                                          \
+        if(logger.get_level() <= Logger::DEBUG) { \
+            print(stdout, "{:-^75}\n", m);        \
+        }                                         \
+    } while(false)
 
 #else
 

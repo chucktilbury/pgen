@@ -23,7 +23,7 @@ typedef enum {
 
 class Token {
 
-public:
+    public:
     Token(File*);
     ~Token() {
         TRACE(format("discard token: {}", text));
@@ -45,9 +45,12 @@ public:
         return os;
     }
 
+    int line_no;
+    int col_no;
+    string* fname;
     File* file;
 
-private:
+    private:
     string text;
     token_type_t type;
 
@@ -59,4 +62,3 @@ private:
     void read_dquote();
     void read_squote();
 };
-

@@ -51,7 +51,7 @@ void Token::consume_single_line_comment() {
 
 bool Token::check_terminal(const string& text) {
 
-    for(auto &ch : text)
+    for(auto& ch : text)
         if(islower(ch))
             return false;
 
@@ -227,20 +227,24 @@ Token::Token(File* file) {
             errors.warning(file, format("unexpected or unhandled character: {:c} ({:#02X})", ch, ch));
         }
     }
+
+    line_no = file->line_no;
+    col_no = file->col_no;
+    fname = new string(file->fname);
 }
 
 const char* Token::type_to_str() {
 
-    return (type == TOK_END_OF_FILE)? "END_OF_FILE" :
-        (type == TOK_QSTR)? "DSTR (TERMINAL)" :
-        (type == TOK_OPAREN)? "OPAREN" :
-        (type == TOK_CPAREN)? "CPAREN" :
-        (type == TOK_STAR)? "STAR" :
-        (type == TOK_PIPE)? "PIPE" :
-        (type == TOK_QUESTION)? "QUESTION" :
-        (type == TOK_PLUS)? "PLUS" :
-        (type == TOK_BANG)? "BANG" :
-        (type == TOK_TERMINAL)? "TERMINAL" :
-        (type == TOK_NON_TERMINAL)? "NON_TERMINAL" : "UNKNOWN";
+    return (type == TOK_END_OF_FILE)   ? "END_OF_FILE" :
+            (type == TOK_QSTR)         ? "DSTR (TERMINAL)" :
+            (type == TOK_OPAREN)       ? "OPAREN" :
+            (type == TOK_CPAREN)       ? "CPAREN" :
+            (type == TOK_STAR)         ? "STAR" :
+            (type == TOK_PIPE)         ? "PIPE" :
+            (type == TOK_QUESTION)     ? "QUESTION" :
+            (type == TOK_PLUS)         ? "PLUS" :
+            (type == TOK_BANG)         ? "BANG" :
+            (type == TOK_TERMINAL)     ? "TERMINAL" :
+            (type == TOK_NON_TERMINAL) ? "NON_TERMINAL" :
+                                         "UNKNOWN";
 }
-

@@ -18,22 +18,21 @@ void CmdLine::show_help() {
     show_preamble();
     show_version();
 
-    cout << "\nuse: " << *pname << " [args]" <<
-            ((files > 0)? (files > 1)? " [list of files]" : " [file]" : "") <<
-            endl << endl;
+    cout << "\nuse: " << *pname << " [args]" << ((files > 0) ? (files > 1) ? " [list of files]" : " [file]" : "") << endl
+         << endl;
 
     cout << "args:" << endl;
     cout << format("{:-<75}", ' ') << endl;
-    for(auto x: opts) {
+    for(auto x : opts) {
         if(x->flags & CMD_DIV) {
             cout << format("{:-<75}", ' ') << endl;
         }
         else if(x->flags & CMD_ANON) {
-            cout << "          " << *x->help << ((x->flags & CMD_REQD)? " (reqd)": "") << endl;
+            cout << "          " << *x->help << ((x->flags & CMD_REQD) ? " (reqd)" : "") << endl;
         }
         else {
             if(x->short_opt != 0)
-                cout <<  *x->short_opt << " ";
+                cout << *x->short_opt << " ";
             else
                 cout << "   ";
 
@@ -60,18 +59,19 @@ void CmdLine::show_help() {
                 else
                     cout << format("{:<14}", ' ');
             }
-            cout << *x->help << ((x->flags & CMD_REQD)? " (reqd)": "") << endl;
+            cout << *x->help << ((x->flags & CMD_REQD) ? " (reqd)" : "") << endl;
         }
     }
-    cout << format("{:-<75}", ' ') << endl << endl;
+    cout << format("{:-<75}", ' ') << endl
+         << endl;
 }
 
 void CmdLine::add(int so,
-            const char* lo,
-            const char* na,
-            const char* he,
-            const char* dv,
-            uint16_t fl) {
+                  const char* lo,
+                  const char* na,
+                  const char* he,
+                  const char* dv,
+                  uint16_t fl) {
 
     string* short_arg = NULL;
     string* long_arg = NULL;
@@ -119,13 +119,13 @@ void CmdLine::store_environment(char** env) {
         vector<string> tokens = split_string(env[i], "=");
         ptr->set_name(new string(tokens[0]));
         ptr->flags = CMD_SEEN;
-        //cout << tokens[0] << endl;
+        // cout << tokens[0] << endl;
 
         tokens = split_string(tokens[1], ":");
 
-        for(auto x: tokens) {
+        for(auto x : tokens) {
             ptr->store_value(new string(x));
-            //cout << "\t" << x << endl;
+            // cout << "\t" << x << endl;
         }
 
         opts.push_back(ptr);
@@ -152,7 +152,7 @@ void CmdLine::parse_long_option() {
 
     string tok = *token;
     bool found = false;
-    for(auto x: opts) {
+    for(auto x : opts) {
         if(x->long_opt) {
             if(!tok.compare(0, x->long_opt->size(), string(*x->long_opt))) {
                 // cout << "long opt: " << *x->long_opt << " flags: " << format("{:04X}", x->flags) << endl;
@@ -172,9 +172,9 @@ void CmdLine::parse_long_option() {
                         if(string(val[1]).size() > 0) {
                             if(x->flags & CMD_LIST) {
                                 vector<string> t = split_string(val[1], ":");
-                                for(auto v: t) {
+                                for(auto v : t) {
                                     x->value.push_back(new string(v));
-                                    //cout << "\t" << x << endl;
+                                    // cout << "\t" << x << endl;
                                 }
                             }
                             else
@@ -193,9 +193,9 @@ void CmdLine::parse_long_option() {
                             if(tok[0] != '-') {
                                 if(x->flags & CMD_LIST) {
                                     vector<string> t = split_string(tok, ":");
-                                    for(auto v: t) {
+                                    for(auto v : t) {
                                         x->value.push_back(new string(v));
-                                        //cout << "\t" << x << endl;
+                                        // cout << "\t" << x << endl;
                                     }
                                 }
                                 else {
@@ -240,7 +240,7 @@ void CmdLine::parse_short_option() {
     string tok = *token;
     bool found = false;
 
-    for(auto x: opts) {
+    for(auto x : opts) {
         if(x->short_opt) {
             if(!tok.compare(0, 2, string(*x->short_opt))) {
                 // cout << "short opt: " << *x->short_opt << " flags: " << format("{:04X}", x->flags) << endl;
@@ -260,9 +260,9 @@ void CmdLine::parse_short_option() {
                         if(string(val[1]).size() > 0) {
                             if(x->flags & CMD_LIST) {
                                 vector<string> t = split_string(val[1], ":");
-                                for(auto v: t) {
+                                for(auto v : t) {
                                     x->value.push_back(new string(v));
-                                    //cout << "\t" << x << endl;
+                                    // cout << "\t" << x << endl;
                                 }
                             }
                             else {
@@ -286,9 +286,9 @@ void CmdLine::parse_short_option() {
                             if(tok[0] != '-') {
                                 if(x->flags & CMD_LIST) {
                                     vector<string> t = split_string(tok, ":");
-                                    for(auto v: t) {
+                                    for(auto v : t) {
                                         x->value.push_back(new string(v));
-                                        //cout << "\t" << x << endl;
+                                        // cout << "\t" << x << endl;
                                     }
                                 }
                                 else {
@@ -331,7 +331,7 @@ void CmdLine::parse(int argc, char** argv, char** env) {
     // store the environment
     store_environment(env);
 
-    //dump_opts();
+    // dump_opts();
 }
 
 void CmdLine::parse(int argc, char** argv) {
@@ -351,7 +351,7 @@ void CmdLine::parse(int argc, char** argv) {
         else {
             // see if there is an anonymous option and add this to it if there is.
             bool found = false;
-            for(auto x: opts) {
+            for(auto x : opts) {
                 if(x->flags & CMD_ANON) {
                     x->value.push_back(&(*token));
                     found = true;
@@ -371,7 +371,7 @@ void CmdLine::parse(int argc, char** argv) {
 
 
     // check that required options have a value
-    for(auto x: opts) {
+    for(auto x : opts) {
         if(x->flags & CMD_REQD && x->value.size() == 0) {
             if(x->short_opt)
                 cerr << "error: command argment \"" << *x->short_opt << "\" requires a value." << endl;
@@ -390,11 +390,11 @@ void CmdLine::parse(int argc, char** argv) {
 
 CmdLineOpt* CmdLine::find_option(const string& name) {
 
-    for(auto x: opts) {
+    for(auto x : opts) {
         if(x->name) {
-            //cout << "compare: " << *x->name << endl;
+            // cout << "compare: " << *x->name << endl;
             if(!name.compare(string(*x->name))) {
-                //cout << "found: " << *x->name << endl;
+                // cout << "found: " << *x->name << endl;
                 return x;
             }
         }
@@ -413,13 +413,12 @@ int CmdLine::get_int_opt(const string& name) {
 
     CmdLineOpt* opt = find_option(name);
     return stoi(*opt->value[0]);
-
 }
 
 bool CmdLine::get_bool_opt(const string& name) {
 
     CmdLineOpt* opt = find_option(name);
-    return stoi(*opt->value[0]) == 0? false: true;
+    return stoi(*opt->value[0]) == 0 ? false : true;
 }
 
 vector<string*>& CmdLine::get_opt_vector(const string& name) {
@@ -439,14 +438,15 @@ bool CmdLine::seen(const string& name) {
 
 void CmdLine::dump_opts() {
 
-    for(auto x: opts) {
-        cout << ((x->name)? *x->name: "none") << ": ";
-        cout << ((x->short_opt)? *x->short_opt: "none") << ": ";
-        cout << ((x->long_opt)? *x->long_opt: "none") << ": ";
-        cout << ((x->help)? *x->help: "none");
+    for(auto x : opts) {
+        cout << ((x->name) ? *x->name : "none") << ": ";
+        cout << ((x->short_opt) ? *x->short_opt : "none") << ": ";
+        cout << ((x->long_opt) ? *x->long_opt : "none") << ": ";
+        cout << ((x->help) ? *x->help : "none");
 
-        for(auto y: x->value) {
-            cout << endl << "\t" << *y;
+        for(auto y : x->value) {
+            cout << endl
+                 << "\t" << *y;
         }
 
         cout << endl;
@@ -456,8 +456,8 @@ void CmdLine::dump_opts() {
 string CmdLine::find_file(string name) {
 
     ENTER;
-    //stringstream tmp;
-    for(auto x: search_path) {
+    // stringstream tmp;
+    for(auto x : search_path) {
         // cout << x << endl;
         string tmp(x + name);
         TRACE(format("try file name: {}", tmp));
@@ -467,17 +467,17 @@ string CmdLine::find_file(string name) {
         }
     }
 
-    //return filesystem::canonical(tmp);
-   RETURN(name);
+    // return filesystem::canonical(tmp);
+    RETURN(name);
 }
 
 void CmdLine::add_path(vector<string> name_lst) {
 
     ENTER;
-    for(auto x: name_lst) {
+    for(auto x : name_lst) {
         try {
             add_dir(filesystem::canonical(x));
-            for(const auto& entry: filesystem::directory_iterator(x))
+            for(const auto& entry : filesystem::directory_iterator(x))
                 add_dir(canonical(entry));
         }
         catch(filesystem::filesystem_error const& ex) {
@@ -493,10 +493,10 @@ void CmdLine::add_path(vector<string*> name_lst) {
 
     ENTER;
     logger.push_level(Logger::WARNING);
-    for(auto x: name_lst) {
+    for(auto x : name_lst) {
         try {
             add_dir(filesystem::canonical(*x));
-            for(const auto& entry: filesystem::directory_iterator(filesystem::canonical(*x))) {
+            for(const auto& entry : filesystem::directory_iterator(filesystem::canonical(*x))) {
                 add_dir(entry);
             }
         }
@@ -530,7 +530,7 @@ void CmdLine::add_dir(string* name) {
 static string strip(const string& s) {
 
     string x("");
-    for(auto c: s) {
+    for(auto c : s) {
         if(c != '\"')
             x += c;
     }
@@ -541,7 +541,7 @@ static string strip(const string& s) {
 void CmdLine::add_dir(const filesystem::directory_entry& name) {
 
     if(filesystem::is_directory(filesystem::status(name))) {
-        //cout << name << endl;
+        // cout << name << endl;
         stringstream tmp;
         tmp << name;         // use the operator<< to get a string into the stream
         string s(tmp.str()); // get the actual string
