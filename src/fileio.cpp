@@ -11,7 +11,7 @@ extern Errors errors;
 
 
 File::File(const string& fname)
-: fname(fname) {
+        : fname(fname) {
 
     ENTER;
     TRACE(format("Opening file: {}", fname));

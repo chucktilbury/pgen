@@ -118,24 +118,25 @@ string* Parser::_convert_str(string& str) {
     }
     else {
         string tmp = string(str);
-        for(auto & c: tmp) { c = toupper(c); }
+        for(auto& c : tmp) {
+            c = toupper(c);
+        }
         return new string("TOK_" + tmp);
-
     }
 }
 
 _ast_node* Parser::parse() {
     ENTER;
-    logger.push_level(Logger::WARNING);
+    // logger.push_level(Logger::WARNING);
     _ast_node* node = (_ast_node*)_parse_grammar();
-    logger.pop_level();
-   RETURN(node);
+    // logger.pop_level();
+    RETURN(node);
 }
 
 _ast_grammar* Parser::_parse_grammar() {
     ENTER;
 
-    vector<_ast_node*> list;
+    vector<_ast_rule*> list;
     _ast_rule* rule = nullptr;
     _ast_grammar* node = nullptr;
 
@@ -239,8 +240,8 @@ _ast_rule* Parser::_parse_rule() {
             case RETURN_MATCH: {
                 TRACE(format("state: {}", STATE_NAME(state)));
                 node = new _ast_rule(TOKEN);
-                node->set_group(group);
-                node->set_non_terminal(nterm);
+                node->group = group;
+                node->nt = nterm;
                 scanner.flush_queue();
                 finished = true;
             } break;
@@ -353,7 +354,7 @@ _ast_primary* Parser::_parse_primary() {
             case 5: {
                 TRACE(format("state: {}", STATE_NAME(state)));
                 if(nullptr != (zero_or_more = _parse_zero_or_more())) {
-                    item = (_ast_node*)zero_or_one;
+                    item = (_ast_node*)zero_or_more;
                     state = RETURN_MATCH;
                 }
                 else {
@@ -390,9 +391,9 @@ _ast_primary* Parser::_parse_primary() {
             case RETURN_MATCH: {
                 TRACE(format("state: {}", STATE_NAME(state)));
                 node = new _ast_primary(TOKEN);
-                node->set_term(term);
-                node->set_nterm(nterm);
-                node->set_item(item);
+                node->terminal = term;
+                node->non_terminal = nterm;
+                node->node = item;
                 scanner.flush_queue();
                 finished = true;
             } break;
@@ -454,7 +455,7 @@ _ast_select* Parser::_parse_select() {
             case RETURN_MATCH: {
                 TRACE(format("state: {}", STATE_NAME(state)));
                 node = new _ast_select(TOKEN);
-                node->set_item(primary);
+                node->item = primary;
                 scanner.flush_queue();
                 finished = true;
             } break;
@@ -602,7 +603,7 @@ _ast_zero_or_one* Parser::_parse_zero_or_one() {
             case RETURN_MATCH: {
                 TRACE(format("state: {}", STATE_NAME(state)));
                 node = new _ast_zero_or_one(TOKEN);
-                node->set_item(primary);
+                node->item = primary;
                 scanner.flush_queue();
                 finished = true;
             } break;
@@ -663,7 +664,7 @@ _ast_zero_or_more* Parser::_parse_zero_or_more() {
             case RETURN_MATCH: {
                 TRACE(format("state: {}", STATE_NAME(state)));
                 node = new _ast_zero_or_more(TOKEN);
-                node->set_item(primary);
+                node->item = primary;
                 scanner.flush_queue();
                 finished = true;
             } break;
@@ -724,7 +725,7 @@ _ast_one_or_more* Parser::_parse_one_or_more() {
             case RETURN_MATCH: {
                 TRACE(format("state: {}", STATE_NAME(state)));
                 node = new _ast_one_or_more(TOKEN);
-                node->set_item(primary);
+                node->item = primary;
                 scanner.flush_queue();
                 finished = true;
             } break;

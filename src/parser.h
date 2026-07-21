@@ -8,7 +8,7 @@ class Parser {
 
     public:
     Parser(Scanner scn)
-    : scanner(scn) {
+            : scanner(scn) {
         errors = 0;
         warnings = 0;
     }

@@ -6,7 +6,7 @@
 #include <iostream>
 #include <format>
 
-#include "ast.h"
+#include "ast_regurge.h"
 #include "parser.h"
 #include "scanner.h"
 #include "cmdline.h"
@@ -61,15 +61,21 @@ CmdLine* cmdline(int argc, char** argv, char** env) {
 int main(int argc, char** argv, char** env) {
 
     CmdLine* cmd = cmdline(argc, argv, env);
+    // logger.push_level(Logger::WARNING);
 
     ENTER; // after verbosity is init
     string filename = cmd->find_file(*cmd->get_string_opt("files"));
     Parser parser = Parser(Scanner(filename));
 
     _ast_node* node = parser.parse();
+    // logger.pop_level();
 
-    if(node != nullptr && parser.get_errors() == 0)
-        node->traverse();
+    if(node != nullptr && parser.get_errors() == 0) {
+        AstRegurge gurge(node);
+        gurge.traverse();
+        for(string* s : gurge.output)
+            cout << *s << endl << endl;
+    }
 
     RETURN(0);
 }

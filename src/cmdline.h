@@ -37,9 +37,12 @@ class CmdLineOpt {
 
     public:
     CmdLineOpt()
-    : short_opt(nullptr), long_opt(nullptr),
-      name(nullptr), help(nullptr), def_val(nullptr),
-      flags(0) {};
+            : short_opt(nullptr)
+            , long_opt(nullptr)
+            , name(nullptr)
+            , help(nullptr)
+            , def_val(nullptr)
+            , flags(0) {};
     // TODO: Try to use non-pointers for string values
     CmdLineOpt(string* short_opt,
                string* long_opt,
@@ -47,9 +50,12 @@ class CmdLineOpt {
                string* help,
                string* def_val,
                uint16_t flags)
-    : short_opt(short_opt), long_opt(long_opt),
-      name(name), help(help), def_val(def_val),
-      flags(flags) {
+            : short_opt(short_opt)
+            , long_opt(long_opt)
+            , name(name)
+            , help(help)
+            , def_val(def_val)
+            , flags(flags) {
     }
 
     string* get_short_opt() {
@@ -100,8 +106,10 @@ class CmdLine {
 
     public:
     CmdLine(const char* name, const char* pre, const char* vers, char* pname)
-    : preamble(new string(pre)), version(new string(vers)),
-      name(new string(name)), pname(new string(pname)) {
+            : preamble(new string(pre))
+            , version(new string(vers))
+            , name(new string(name))
+            , pname(new string(pname)) {
     }
 
     // add command option. interface to the option class

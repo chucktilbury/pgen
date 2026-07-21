@@ -10,9 +10,11 @@
         "OCURLY",
         "OPAREN",
         "OPOINT",
+        "ostr",
         "pgen",
         "QSTR",
         "QSTRG",
+        "Regurge",
         "SSTR",
         "yyin"
     ]

@@ -1,0 +1,8 @@
+
+/*
+    Test a regression
+*/
+
+some_name (
+    * TERMINAL
+)

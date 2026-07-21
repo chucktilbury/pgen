@@ -56,7 +56,7 @@ void Scanner::close_file() {
 Token* Scanner::advance() {
 
     ENTER;
-    TRACE(format("old token: {} ({})", token()->get_text(), token()->type_to_str()));
+    TRACE(format("old token: \"{}\" ({})", token()->get_text(), token()->type_to_str()));
     // if(crnt_index+1 >= token_queue.size()) {
     //     Token* tok = new Token(file());
     //     token_queue.push_back(tok);
@@ -67,7 +67,7 @@ Token* Scanner::advance() {
     if(token()->get_type() != TOK_END_OF_FILE)
         crnt_index++;
 
-    TRACE(format("new token: {} ({})", token()->get_text(), token()->type_to_str()));
+    TRACE(format("new token: \"{}\" ({})", token()->get_text(), token()->type_to_str()));
     RETURN(token());
 }
 

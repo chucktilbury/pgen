@@ -203,7 +203,7 @@ BreakBeforeTernaryOperators: false
 
 # BreakConstructorInitializersBeforeComma (bool)
 # Always break constructor initializers before commas and align the commas with the colon.
-BreakConstructorInitializersBeforeComma: false
+BreakConstructorInitializersBeforeComma: true
 
 # BreakStringLiterals (bool)
 # Allow breaking string literals when formatting.
@@ -224,7 +224,7 @@ ConstructorInitializerAllOnOneLineOrOnePerLine: false
 
 # ConstructorInitializerIndentWidth (unsigned)
 # The number of characters to use for indentation of constructor initializer lists.
-ConstructorInitializerIndentWidth: 0
+ConstructorInitializerIndentWidth: 8
 
 # ContinuationIndentWidth (unsigned)
 # Indent width for line continuations.
