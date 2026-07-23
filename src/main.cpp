@@ -6,7 +6,7 @@
 #include <iostream>
 #include <format>
 
-#include "ast_regurge.h"
+#include "ast_format.h"
 #include "parser.h"
 #include "scanner.h"
 #include "cmdline.h"
@@ -71,10 +71,20 @@ int main(int argc, char** argv, char** env) {
     // logger.pop_level();
 
     if(node != nullptr && parser.get_errors() == 0) {
-        AstRegurge gurge(node);
-        gurge.traverse();
-        for(string* s : gurge.output)
-            cout << *s << endl << endl;
+        AstFormat fmt(node);
+        fmt.traverse();
+        // for(string* s : fmt.output)
+        //     cout << *s << endl << endl;
+        for(auto rule: fmt) {
+            cout << *rule->rule_str << endl;
+        }
+
+        cout << endl;
+        Rule* r = fmt.get_rule(6);
+        cout << *r->rule_str << endl;
+
+        for(auto s: fmt.get_term_list())
+            cout << s << endl;
     }
 
     RETURN(0);

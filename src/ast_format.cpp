@@ -1,10 +1,12 @@
 
+#include <algorithm>
+
 #include "logger.h"
 extern Logger logger;
 
-#include "ast_regurge.h"
+#include "ast_format.h"
 
-void AstRegurge::_traverse_grammar(_ast_grammar* node) {
+void AstFormat::_traverse_grammar(_ast_grammar* node) {
     ENTER;
     START(" traverse ");
 
@@ -16,14 +18,14 @@ void AstRegurge::_traverse_grammar(_ast_grammar* node) {
     RETURN();
 }
 
-void AstRegurge::_traverse_rule(_ast_rule* node) {
+void AstFormat::_traverse_rule(_ast_rule* node) {
     ENTER;
 
     TRACE(format("define non-terminal symbol: {}", *node->nt));
     crnt_line = new string("");
     emit(format("{} ", *node->nt));
     _traverse_group(node->group);
-    output.push_back(crnt_line);
+    store_rule(new Rule(node, crnt_line));
 
     RETURN();
 }
@@ -40,7 +42,7 @@ void AstRegurge::_traverse_rule(_ast_rule* node) {
         select_expr
     )
 */
-void AstRegurge::_traverse_primary(_ast_primary* node) {
+void AstFormat::_traverse_primary(_ast_primary* node) {
     ENTER;
 
     // TRACE(format("this: {}: {}", (void*)this, typeid(node).name()));
@@ -51,6 +53,8 @@ void AstRegurge::_traverse_primary(_ast_primary* node) {
     else if(node->terminal != nullptr) {
         TRACE(format("terminal symbol: \"{}\"", *node->terminal));
         emit(format("{} ", *node->terminal));
+        if(find(term_list.begin(), term_list.end(), *node->terminal) == term_list.end())
+            term_list.push_back(*node->terminal);
     }
     else if(node->node != nullptr) {
         TRACE(format("traversing node type: {}", node->node->to_str()));
@@ -78,7 +82,7 @@ void AstRegurge::_traverse_primary(_ast_primary* node) {
     RETURN();
 }
 
-void AstRegurge::_traverse_group(_ast_group* node) {
+void AstFormat::_traverse_group(_ast_group* node) {
     ENTER;
 
     TRACE(format("list size is {}", node->list.size()));
@@ -96,7 +100,7 @@ void AstRegurge::_traverse_group(_ast_group* node) {
     RETURN();
 }
 
-void AstRegurge::_traverse_select(_ast_select* node) {
+void AstFormat::_traverse_select(_ast_select* node) {
     ENTER;
 
     emit("|\n");
@@ -106,7 +110,7 @@ void AstRegurge::_traverse_select(_ast_select* node) {
     RETURN();
 }
 
-void AstRegurge::_traverse_zero_or_one(_ast_zero_or_one* node) {
+void AstFormat::_traverse_zero_or_one(_ast_zero_or_one* node) {
     ENTER;
 
     emit("?");
@@ -115,7 +119,7 @@ void AstRegurge::_traverse_zero_or_one(_ast_zero_or_one* node) {
     RETURN();
 }
 
-void AstRegurge::_traverse_zero_or_more(_ast_zero_or_more* node) {
+void AstFormat::_traverse_zero_or_more(_ast_zero_or_more* node) {
     ENTER;
 
     emit("*");
@@ -124,7 +128,7 @@ void AstRegurge::_traverse_zero_or_more(_ast_zero_or_more* node) {
     RETURN();
 }
 
-void AstRegurge::_traverse_one_or_more(_ast_one_or_more* node) {
+void AstFormat::_traverse_one_or_more(_ast_one_or_more* node) {
     ENTER;
 
     emit("+");

@@ -38,17 +38,7 @@ string* Parser::_convert_str(string& str) {
             case ')':
                 return new string("TOK_CPAREN");
             case '?':
-                return new string("TOK_OPAREN");
-            case '*':
-                return new string("TOK_STAR");
-            case '+':
-                return new string("TOK_PLUS");
-            case '/':
-                return new string("TOK_SLASH");
-            case '-':
-                return new string("TOK_MINUS");
-            case '%':
-                return new string("TOK_PERCENT");
+                return new string("TOK_QUESTION");
             case '|':
                 return new string("TOK_PIPE");
             case '{':
@@ -67,6 +57,61 @@ string* Parser::_convert_str(string& str) {
                 return new string("TOK_OSQUARE");
             case ']':
                 return new string("TOK_CSQUARE");
+            case '*':
+                if(str.size() > 1) {
+                    if(str[1] == '=')
+                        return new string("TOK_MUL_ASSIGN");
+                    else {
+                        _error(TOKEN, format("unknown operator: {}", str));
+                        return nullptr;
+                    }
+                }
+                else
+                    return new string("TOK_STAR");
+            case '+':
+                if(str.size() > 1) {
+                    if(str[1] == '=')
+                        return new string("TOK_ADD_ASSIGN");
+                    else {
+                        _error(TOKEN, format("unknown operator: {}", str));
+                        return nullptr;
+                    }
+                }
+                else
+                    return new string("TOK_PLUS");
+            case '/':
+                if(str.size() > 1) {
+                    if(str[1] == '=')
+                        return new string("TOK_DIV_ASSIGN");
+                    else {
+                        _error(TOKEN, format("unknown operator: {}", str));
+                        return nullptr;
+                    }
+                }
+                else
+                    return new string("TOK_SLASH");
+            case '-':
+                if(str.size() > 1) {
+                    if(str[1] == '=')
+                        return new string("TOK_SUB_ASSIGN");
+                    else {
+                        _error(TOKEN, format("unknown operator: {}", str));
+                        return nullptr;
+                    }
+                }
+                else
+                    return new string("TOK_MINUS");
+            case '%':
+                if(str.size() > 1) {
+                    if(str[1] == '=')
+                        return new string("TOK_MOD_ASSIGN");
+                    else {
+                        _error(TOKEN, format("unknown operator: {}", str));
+                        return nullptr;
+                    }
+                }
+                else
+                    return new string("TOK_PERCENT");
             case '<':
                 if(str.size() > 1) {
                     if(str[1] == '=')
@@ -92,7 +137,7 @@ string* Parser::_convert_str(string& str) {
             case '!':
                 if(str.size() > 1) {
                     if(str[1] == '=')
-                        return new string("TOK_NEQU");
+                        return new string("TOK_IS_NEQU");
                     else {
                         _error(TOKEN, format("unknown operator: {}", str));
                         return nullptr;
@@ -103,7 +148,7 @@ string* Parser::_convert_str(string& str) {
             case '=':
                 if(str.size() > 1) {
                     if(str[1] == '=')
-                        return new string("TOK_ISEQU");
+                        return new string("TOK_IS_EQU");
                     else {
                         _error(TOKEN, format("unknown operator: {}", str));
                         return nullptr;
