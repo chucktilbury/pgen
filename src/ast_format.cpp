@@ -26,6 +26,7 @@ void AstFormat::_traverse_rule(_ast_rule* node) {
     emit(format("{} ", *node->nt));
     _traverse_group(node->group);
     store_rule(new Rule(node, crnt_line));
+    non_term_list.push_back(*node->nt);
 
     RETURN();
 }

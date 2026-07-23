@@ -75,7 +75,7 @@ int main(int argc, char** argv, char** env) {
         fmt.traverse();
         // for(string* s : fmt.output)
         //     cout << *s << endl << endl;
-        for(auto rule: fmt) {
+        for(auto rule : fmt) {
             cout << *rule->rule_str << endl;
         }
 
@@ -83,7 +83,9 @@ int main(int argc, char** argv, char** env) {
         Rule* r = fmt.get_rule(6);
         cout << *r->rule_str << endl;
 
-        for(auto s: fmt.get_term_list())
+        for(auto s : fmt.get_term_list())
+            cout << s << endl;
+        for(auto s : fmt.get_non_term_list())
             cout << s << endl;
     }
 

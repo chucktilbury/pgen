@@ -61,11 +61,16 @@ class AstFormat : public AstTraverse {
         return term_list;
     }
 
+    vector<string> get_non_term_list() {
+        return non_term_list;
+    }
+
     private:
     // each item in the output is a rule
     vector<Rule*> output;
     map<string, int> index;
     vector<string> term_list;
+    vector<string> non_term_list;
 
     virtual void _traverse_grammar(_ast_grammar* node);
     virtual void _traverse_rule(_ast_rule* node);
