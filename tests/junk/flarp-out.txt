@@ -1,0 +1,6 @@
+string text("The first one: this is inst_one class\n"
+                    "but no match here aint nothing if its "this is a good string" something\n"
+                    "The second one: this is inst_two class\n"
+                    "The third one: this is inst_three class\n");
+
+    string* s(rend.render(text));

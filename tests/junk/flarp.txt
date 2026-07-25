@@ -1,0 +1,6 @@
+string text("The first one: {{first}}\n"
+                    "but no match here {{nothing}}\n"
+                    "The second one: {{second}}\n"
+                    "The third one: {{third}}\n");
+
+    string* s(rend.render(text));

@@ -22,9 +22,10 @@ CmdLine* cmdline(int argc, char** argv, char** env) {
     CmdLine* cmd = new CmdLine("PGEN", "PGEN Parser Generator", "0.0.1", argv[0]);
 
     // init_cmdline("template", "template project", "0.1");
-    cmd->add('v', "verbosity", "verbosity", "use: \"debug\", \"info\", \"warn\", \"silent\".", "warn", CMD_STR | CMD_ARGS);
+    cmd->add('v', "verbosity", "verbosity", "use: \"debug\"|\"info\"|\"warn\"|\"silent\".", "warn", CMD_STR | CMD_ARGS);
     cmd->add('p', "path", "path", "Add to the import path", "", CMD_STR | CMD_ARGS | CMD_LIST);
-    cmd->add('d', "dump", "dump", "Dump text as the parser is generated", "", CMD_STR | CMD_ARGS | CMD_LIST);
+    //cmd->add('d', "dump", "dump", "Dump text as the parser is generated", "", CMD_STR | CMD_ARGS | CMD_LIST);
+    cmd->add('o', "outf", "outf", "Output file name suffix", "outfile", CMD_STR | CMD_ARGS);
     cmd->add_help();    // name "help" is reserved
     cmd->add_version(); // name "version" is reserved
     cmd->add(0, NULL, NULL, NULL, NULL, CMD_DIV);
