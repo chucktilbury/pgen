@@ -1,0 +1,6 @@
+/*
+ *  {{file_name}}
+ *  THIS IS A GENERATED FILE
+ *  {{date}}
+ *
+ */

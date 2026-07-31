@@ -1,5 +1,6 @@
+#ifndef _AST_H_
+#define _AST_H_
 
-#pragma once
 
 #include <ostream>
 #include <typeinfo>
@@ -218,3 +219,6 @@ class AstTraverse {
 
     _ast_node* root;
 };
+
+
+#endif /* _AST_H_ */

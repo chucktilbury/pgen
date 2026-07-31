@@ -1,0 +1,6 @@
+{{header}}
+
+#pragma once
+
+#include <ostream>
+

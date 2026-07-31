@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _CMDLINE_H_
+#define _CMDLINE_H_
 
 #include <string>
 #include <vector>
@@ -178,3 +179,6 @@ class CmdLine {
 
     // void dump_opts();
 };
+
+
+#endif /* _CMDLINE_H_ */

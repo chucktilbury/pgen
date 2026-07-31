@@ -1,5 +1,6 @@
+#ifndef _AST_FORMAT_H_
+#define _AST_FORMAT_H_
 
-#pragma once
 
 #include <iostream>
 #include <map>
@@ -94,3 +95,6 @@ class AstFormat : public AstTraverse {
     int pad_size;
     string* crnt_line;
 };
+
+
+#endif /* _AST_FORMAT_H_ */

@@ -5,6 +5,8 @@ docs/out/
 bin/
 lib/
 .cache
+src/templates.h
+src/templates.cpp
 
 # Prerequisites
 *.d

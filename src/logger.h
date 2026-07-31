@@ -1,5 +1,6 @@
+#ifndef _LOGGER_H_
+#define _LOGGER_H_
 
-#pragma once
 
 #include <ctime>
 #include <fstream>
@@ -170,3 +171,6 @@ class Logger {
 #define TRACE(m)
 
 #endif
+
+
+#endif /* _LOGGER_H_ */

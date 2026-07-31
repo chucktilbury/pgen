@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _TOKENS_H_
+#define _TOKENS_H_
 
 #include "fileio.h"
 
@@ -62,3 +63,6 @@ class Token {
     void read_dquote();
     void read_squote();
 };
+
+
+#endif /* _TOKENS_H_ */

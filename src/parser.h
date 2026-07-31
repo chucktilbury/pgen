@@ -1,5 +1,6 @@
+#ifndef _PARSER_H_
+#define _PARSER_H_
 
-#pragma once
 
 #include "scanner.h"
 #include "ast.h"
@@ -45,3 +46,6 @@ class Parser {
     int errors;
     int warnings;
 };
+
+
+#endif /* _PARSER_H_ */

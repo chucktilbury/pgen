@@ -1,21 +1,8 @@
 
 #include "render.h"
 
-void Render::render_file(string infile, string outfile) {
 
-    ofstream outf(outfile);
-    if(outf.is_open()) {
-        outf << *render_file(infile) << endl;
-        outf.close();
-    }
-    else {
-        cerr << format("fatal error: {}: cannot open output file: {}: {}\n",
-                __PRETTY_FUNCTION__, outfile, strerror(errno));
-        exit(1);
-    }
-}
-
-string* Render::render_text(string text) {
+string Render::render_text(string text) {
 
     bool finished = false;
     int state;
@@ -59,7 +46,7 @@ string* Render::render_text(string text) {
                         if(c == '}')
                             state = 4;
                         else {
-                            cerr << format("template error: {} expected a '}' for the key: {} but got a {}\n",
+                            cerr << format("template error: {} expected a '}}' for the key: {} but got a {}\n",
                                         __PRETTY_FUNCTION__, key, c) << endl;
                             exit(1);
                         }
@@ -92,6 +79,6 @@ string* Render::render_text(string text) {
 
     }
 
-    return new string(outs);
+    return outs;
 }
 

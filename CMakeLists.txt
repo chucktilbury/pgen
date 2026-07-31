@@ -21,3 +21,11 @@ add_custom_target(format
     COMMENT "Format the source code"
     COMMAND clang-format --verbose -i ${format_xxfiles}
 )
+
+set_property(
+    TARGET ${PROJECT_NAME}
+    APPEND
+    PROPERTY ADDITIONAL_CLEAN_FILES
+        ${PROJECT_SOURCE_DIR}/src/templates.cpp
+        ${PROJECT_SOURCE_DIR}/src/templates.h
+)

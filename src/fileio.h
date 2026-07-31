@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _FILEIO_H_
+#define _FILEIO_H_
 
 #include <fstream>
 #include <string>
@@ -35,3 +36,6 @@ class File {
     fstream file;
     int crnt_char;
 };
+
+
+#endif /* _FILEIO_H_ */
